@@ -1,0 +1,12 @@
+{$DOMAIN_NAME} {
+     tls {$TLS_EMAIL}
+     root {$PHP_APP_DIR}
+     log /log/caddy.log
+     errors /log/error.log
+     gzip
+
+     import /etc/caddyusers/users
+
+     # PHP-FPM Configuration for Caddy
+     fastcgi / php:9000 php
+ }

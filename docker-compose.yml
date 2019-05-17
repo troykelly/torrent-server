@@ -1,0 +1,180 @@
+version: '3.5'
+services:
+  ruwebfiles:
+    build:
+      context: ./ruWebfiles
+      args:
+        - 'APP_USER=${APP_USER}'
+        - 'APP_GROUP=${APP_GROUP}'
+    volumes:
+      - './public_html/:/app/'
+      - './torrents/:/torrents/'
+      - './security/:/security/'
+    depends_on:
+      - php
+    environment:
+      - 'RUREPO=${RUREPO}'
+      - 'APP_USER=${APP_USER}'
+      - 'APP_GROUP=${APP_GROUP}'
+    restart: "no"
+  caddy:
+    build:
+      context: ./caddy
+      args:
+        - 'APP_USER=${APP_USER}'
+        - 'APP_GROUP=${APP_GROUP}'
+    restart: unless-stopped
+    volumes:
+      - './certs/:/etc/caddycerts/'
+      - './public_html/:${PHP_APP_DIR}/'
+      - './logs/caddy/:/log/'
+      - './security/caddy/:/etc/caddyusers/'
+    ports:
+      - '80:80'
+      - '443:443'
+    depends_on:
+      - php
+      - ruwebfiles
+    environment:
+      - CADDYPATH=/etc/caddycerts
+      - 'APP_USER=${APP_USER}'
+      - 'APP_GROUP=${APP_GROUP}'
+      - 'DOMAIN_NAME=${DOMAIN_NAME}'
+      - 'PHP_APP_DIR=${PHP_APP_DIR}'
+      - 'TLS_EMAIL=${TLS_EMAIL}'
+      - ACME_AGREE=true
+    networks:
+      - frontend
+      - backend
+  php:
+    build:
+      context: ./php
+      args:
+        - 'APP_USER=${APP_USER}'
+        - 'APP_GROUP=${APP_GROUP}'
+        - 'PHP_ROOT_DIR=${PHP_ROOT_DIR}'
+    working_dir: '${PHP_APP_DIR}'
+    volumes:
+      - './public_html/:${PHP_APP_DIR}/'
+      - './logs/php/:${PHP_ROOT_DIR}/logs/'
+      - './torrents/:/torrents/'
+      - '/etc/timezone:/etc/timezone:ro'
+      - '/etc/localtime:/etc/localtime:ro'
+    networks:
+      - backend
+      - torrent
+    environment:
+      - 'PHP_ROOT_DIR=${PHP_ROOT_DIR}'
+      - 'APP_USER=${APP_USER}'
+      - 'APP_GROUP=${APP_GROUP}'
+    restart: unless-stopped
+  drivesync_media:
+    build:
+      context: ./drivesync
+      args:
+        - 'APP_USER=${APP_USER}'
+        - 'APP_GROUP=${APP_GROUP}'
+    volumes:
+      - './logs/:/logs/'
+      - './torrents/${MEDIA_USERNAME}/media/:/upload/'
+    environment:
+      - 'GOOGLE_CLIENTID=${GOOGLE_CLIENTID}'
+      - 'GOOGLE_CLIENTSECRET=${GOOGLE_CLIENTSECRET}'
+      - 'DRIVE_ROOTFOLDER=${DRIVE_ROOTFOLDER}'
+      - 'DRIVE_ACCESSTOKEN=${DRIVE_ACCESSTOKEN}'
+      - 'DRIVE_REFRESHTOKEN=${DRIVE_REFRESHTOKEN}'
+      - 'DRIVE_TOKENEXPIRY=${DRIVE_TOKENEXPIRY}'
+      - DRIVE_TARGETFOLDER=Media/
+      - 'APP_USER=${APP_USER}'
+      - 'APP_GROUP=${APP_GROUP}'
+    depends_on:
+      - rutorrent_media
+    restart: unless-stopped
+  drivesync_other:
+    build:
+      context: ./drivesync
+      args:
+        - 'APP_USER=${APP_USER}'
+        - 'APP_GROUP=${APP_GROUP}'
+    volumes:
+      - './logs/:/logs/'
+      - './torrents/${OTHER_USERNAME}/upload/:/upload/'
+    environment:
+      - 'GOOGLE_CLIENTID=${GOOGLE_CLIENTID}'
+      - 'GOOGLE_CLIENTSECRET=${GOOGLE_CLIENTSECRET}'
+      - 'DRIVE_ROOTFOLDER=${DRIVE_ROOTFOLDER}'
+      - 'DRIVE_ACCESSTOKEN=${DRIVE_ACCESSTOKEN}'
+      - 'DRIVE_REFRESHTOKEN=${DRIVE_REFRESHTOKEN}'
+      - 'DRIVE_TOKENEXPIRY=${DRIVE_TOKENEXPIRY}'
+      - DRIVE_TARGETFOLDER=Torrents/
+      - 'APP_USER=${APP_USER}'
+      - 'APP_GROUP=${APP_GROUP}'
+    depends_on:
+      - rutorrent_other
+    restart: unless-stopped
+  rutorrent_media:
+    build:
+      context: ./ruTorrent
+      args:
+        - 'APP_USER=${APP_USER}'
+        - 'APP_GROUP=${APP_GROUP}'
+        - 'RUUSER=${MEDIA_USERNAME}'
+        - 'PORT=${MEDIA_PORT}'
+        - 'DHTPORT=${MEDIA_DHT}'
+    depends_on:
+      - ruwebfiles
+    environment:
+      - 'FILEBOT_LICENSE_BASE64=${FILEBOT_LICENSE_BASE64}'
+      - 'APP_USER=${APP_USER}'
+      - 'APP_GROUP=${APP_GROUP}'
+      - 'RUUSER=${MEDIA_USERNAME}'
+      - 'PASSWORD=${MEDIA_PASSWORD}'
+      - 'PORT=${MEDIA_PORT}'
+      - 'DHTPORT=${MEDIA_DHT}'
+      - 'OSDB_USER=${OSDB_USERNAME}'
+      - 'OSDB_PASSWORD=${OSDB_PASSWORD}'
+    networks:
+      - torrent
+    volumes:
+      - './torrents/:/torrents/'
+      - './public_html/:/app/'
+      - './security/:/app-data/'
+      - './filebot/:/torrents/${MEDIA_USERNAME}/.filebot/'
+    ports:
+      - '6881:6881'
+    restart: unless-stopped
+  rutorrent_other:
+    build:
+      context: ./ruTorrent
+      args:
+        - 'APP_USER=${APP_USER}'
+        - 'APP_GROUP=${APP_GROUP}'
+        - 'RUUSER=${OTHER_USERNAME}'
+        - 'PORT=${OTHER_PORT}'
+        - 'DHTPORT=${OTHER_DHT}'
+    depends_on:
+      - ruwebfiles
+    environment:
+      - 'FILEBOT_LICENSE_BASE64=${FILEBOT_LICENSE_BASE64}'
+      - 'APP_USER=${APP_USER}'
+      - 'APP_GROUP=${APP_GROUP}'
+      - 'RUUSER=${OTHER_USERNAME}'
+      - 'PASSWORD=${OTHER_PASSWORD}'
+      - 'PORT=${OTHER_PORT}'
+      - 'DHTPORT=${OTHER_DHT}'
+      - 'OSDB_USER=${OSDB_USERNAME}'
+      - 'OSDB_PASSWORD=${OSDB_PASSWORD}'
+    networks:
+      - torrent
+    volumes:
+      - './torrents/:/torrents/'
+      - './public_html/:/app/'
+      - './security/:/app-data/'
+      - './filebot/:/torrents/${MEDIA_USERNAME}/.filebot/'
+    ports:
+      - '6882:6882'
+    restart: unless-stopped
+networks:
+  frontend: null
+  backend: null
+  torrent: null
