@@ -1,8 +1,8 @@
-version: '3.5'
+version:           '3.5'
 services:
   ruwebfiles:
     build:
-      context: ./ruWebfiles
+      context:     ./ruWebfiles
       args:
         - 'APP_USER=${APP_USER}'
         - 'APP_GROUP=${APP_GROUP}'
@@ -16,14 +16,14 @@ services:
       - 'RUREPO=${RUREPO}'
       - 'APP_USER=${APP_USER}'
       - 'APP_GROUP=${APP_GROUP}'
-    restart: "no"
+    restart:       "no"
   caddy:
     build:
-      context: ./caddy
+      context:     ./caddy
       args:
         - 'APP_USER=${APP_USER}'
         - 'APP_GROUP=${APP_GROUP}'
-    restart: unless-stopped
+    restart:       unless-stopped
     volumes:
       - './certs/:/etc/caddycerts/'
       - './public_html/:${PHP_APP_DIR}/'
@@ -48,12 +48,12 @@ services:
       - backend
   php:
     build:
-      context: ./php
+      context:     ./php
       args:
         - 'APP_USER=${APP_USER}'
         - 'APP_GROUP=${APP_GROUP}'
         - 'PHP_ROOT_DIR=${PHP_ROOT_DIR}'
-    working_dir: '${PHP_APP_DIR}'
+    working_dir:   '${PHP_APP_DIR}'
     volumes:
       - './public_html/:${PHP_APP_DIR}/'
       - './logs/php/:${PHP_ROOT_DIR}/logs/'
@@ -67,10 +67,10 @@ services:
       - 'PHP_ROOT_DIR=${PHP_ROOT_DIR}'
       - 'APP_USER=${APP_USER}'
       - 'APP_GROUP=${APP_GROUP}'
-    restart: unless-stopped
+    restart:       unless-stopped
   drivesync_media:
     build:
-      context: ./drivesync
+      context:     ./drivesync
       args:
         - 'APP_USER=${APP_USER}'
         - 'APP_GROUP=${APP_GROUP}'
@@ -84,15 +84,15 @@ services:
       - 'DRIVE_ACCESSTOKEN=${DRIVE_ACCESSTOKEN}'
       - 'DRIVE_REFRESHTOKEN=${DRIVE_REFRESHTOKEN}'
       - 'DRIVE_TOKENEXPIRY=${DRIVE_TOKENEXPIRY}'
-      - DRIVE_TARGETFOLDER=Media/
+      - 'DRIVE_TARGETFOLDER=${MEDIA_DRIVETARGETFOLDER}'
       - 'APP_USER=${APP_USER}'
       - 'APP_GROUP=${APP_GROUP}'
     depends_on:
       - rutorrent_media
-    restart: unless-stopped
+    restart:       unless-stopped
   drivesync_other:
     build:
-      context: ./drivesync
+      context:     ./drivesync
       args:
         - 'APP_USER=${APP_USER}'
         - 'APP_GROUP=${APP_GROUP}'
@@ -106,15 +106,15 @@ services:
       - 'DRIVE_ACCESSTOKEN=${DRIVE_ACCESSTOKEN}'
       - 'DRIVE_REFRESHTOKEN=${DRIVE_REFRESHTOKEN}'
       - 'DRIVE_TOKENEXPIRY=${DRIVE_TOKENEXPIRY}'
-      - DRIVE_TARGETFOLDER=Torrents/
+      - 'DRIVE_TARGETFOLDER=${OTHER_DRIVETARGETFOLDER}'
       - 'APP_USER=${APP_USER}'
       - 'APP_GROUP=${APP_GROUP}'
     depends_on:
       - rutorrent_other
-    restart: unless-stopped
+    restart:       unless-stopped
   rutorrent_media:
     build:
-      context: ./ruTorrent
+      context:     ./ruTorrent
       args:
         - 'APP_USER=${APP_USER}'
         - 'APP_GROUP=${APP_GROUP}'
@@ -142,10 +142,10 @@ services:
       - './filebot/:/torrents/${MEDIA_USERNAME}/.filebot/'
     ports:
       - '6881:6881'
-    restart: unless-stopped
+    restart:       unless-stopped
   rutorrent_other:
     build:
-      context: ./ruTorrent
+      context:     ./ruTorrent
       args:
         - 'APP_USER=${APP_USER}'
         - 'APP_GROUP=${APP_GROUP}'
@@ -173,8 +173,8 @@ services:
       - './filebot/:/torrents/${MEDIA_USERNAME}/.filebot/'
     ports:
       - '6882:6882'
-    restart: unless-stopped
+    restart:       unless-stopped
 networks:
-  frontend: null
-  backend: null
-  torrent: null
+  frontend:        null
+  backend:         null
+  torrent:         null
