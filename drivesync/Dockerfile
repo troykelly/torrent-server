@@ -3,16 +3,17 @@ FROM alpine
 ARG APP_USER
 ARG APP_GROUP
 
-RUN apk -y update && \
- apk upgrade && \
- apk add --no-cache curl unzip;
+
+RUN apk add --no-cache --update curl unzip
 
 RUN cd ~ && \
  curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip && \
  unzip rclone-current-linux-amd64.zip && \
  cd rclone-*-linux-amd64 && \
  cp rclone /usr/bin/ && \
- chmod 755 /usr/bin/rclone;
+ chmod 755 /usr/bin/rclone && \
+ cd ~ && \
+ rm -Rf ./rclone*
 
 COPY sync.sh /usr/sbin/
 RUN chmod +x /usr/sbin/sync.sh

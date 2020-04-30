@@ -363,23 +363,23 @@ execute.throw = bash, -c, (cat,"builtin cd \"", (cfg.basedir), "\" ","&& mkdir -
 # BitTorrent
 # ----------------------------------------------------------------------
 
-max_downloads_global             = 10
-max_uploads_global               = 10
-min_peers                        = 500
-max_peers                        = 1000
-min_peers_seed                   = 500
-max_peers_seed                   = 1000
-max_uploads                      = 1000
-download_rate                    = 0
-upload_rate                      = 0
-tracker_numwant                  = 250
+throttle.max_downloads.global.set    = 10
+throttle.max_uploads.global.set	     = 10
+throttle.min_peers.normal.set	       = 500
+throttle.max_peers.normal.set	       = 1000
+throttle.min_peers.seed.set	         = 500
+throttle.max_peers.seed.set	         = 1000
+throttle.max_uploads.set	           = 1000
+throttle.global_down.max_rate.set_kb = 0
+throttle.global_up.max_rate.set_kb	 = 0
+trackers.numwant.set                 = 250
 
 # ----------------------------------------------------------------------
 # rTorrent
 # ----------------------------------------------------------------------
 
-system.file.allocate.set         = 1
-encoding_list                    = UTF-8
+system.file.allocate.set = 1
+encoding.add             = UTF-8
 
 # ----------------------------------------------------------------------
 # Directories
@@ -396,20 +396,20 @@ log.execute                      = (cfg.exlogfile)
 
 #port_range                       = 51777-51780
 #scgi_local                        = $RPCSOCKET
-scgi_port                        = ${HOSTNAME}:$PORT
+network.scgi.open_port           = ${HOSTNAME}:$PORT
 network.http.ssl_verify_peer.set = 0
-port_random                      = yes
-use_udp_trackers                 = yes
-encryption                       = allow_incoming,enable_retry,prefer_plaintext
+network.port_random.set          = yes
+trackers.use_udp.set             = yes
+protocol.encryption.set          = allow_incoming,enable_retry,prefer_plaintext
 network.max_open_files.set       = 65536
 network.max_open_sockets.set     = 1536
 network.http.max_open.set        = 48
 network.send_buffer.size.set     = 4M
 network.receive_buffer.size.set  = 4M
 network.xmlrpc.size_limit.set    = 4M
-dht                              = auto
-dht_port                         = $DHTPORT
-peer_exchange                    = yes
+dht.mode.set	                   = auto
+dht.port.set                     = $DHTPORT
+protocol.pex.set                 = yes
 
 # ----------------------------------------------------------------------
 # Functions
@@ -476,9 +476,9 @@ log.add_output = "info", "log"
 # Hash
 # ----------------------------------------------------------------------
 
-check_hash                       = no
-pieces.preload.type.set          = 1
-max_memory_usage                 = 5000M
+pieces.hash.on_completion.set = no
+pieces.preload.type.set       = 1
+pieces.memory.max.set         = 5000M
 
 ### END of rtorrent.rc ###
 EOF
@@ -715,6 +715,8 @@ if [ "$NORUN" == "YES" ]; then
   printf "Configuration files generated. Not starting up (would have run the below).\n$COMMAND\n"
   exit 0;
 fi
+
+echo "rTorrent starting with : ${COMMAND}"
 
 $COMMAND & PID=$!
 echo $PID > "${PIDFILE}"
