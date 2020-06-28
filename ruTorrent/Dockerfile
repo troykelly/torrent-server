@@ -11,7 +11,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN echo "APT::Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries && \
  apt-get update && \
- apt-get install -y software-properties-common && \
+ apt-get install -y software-properties-common locales && \
  apt-add-repository universe && \
  add-apt-repository ppa:ondrej/php && \
  apt-get update && \
@@ -21,6 +21,12 @@ RUN echo "APT::Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries && \
  wget -S "https://get.filebot.net/filebot/FileBot_${FILEBOT_VERSION}/FileBot_${FILEBOT_VERSION}_universal.deb" && \
  apt -y install ./FileBot_${FILEBOT_VERSION}_universal.deb && \
  mkdir -p /torrents /etc/filebot /app /app-data;
+
+RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
+ dpkg-reconfigure --frontend=noninteractive locales && \
+ update-locale LANG=en_US.UTF-8
+
+ENV LANG en_US.UTF-8 
 
 COPY torrent.sh /usr/sbin/
 RUN chmod +x /usr/sbin/torrent.sh
