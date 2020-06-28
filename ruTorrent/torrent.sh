@@ -208,6 +208,7 @@ doComplete() {
     MEDIALOGDIR="${user_dir}/log"
     MEDIAEXCLUDEDIR="${user_dir}/filebot"
     mkdir -p "${MEDIADIR}" "${MEDIALOGDIR}" "${MEDIAEXCLUDEDIR}"
+    find ${base_path} -name "?" -type d -exec mv "{}" "{}/../_" \;
     ${FILEBOT} -script fn:amc --output "${MEDIADIR}" --action copy --conflict auto -non-strict "${base_path}" --log-file "${MEDIALOGDIR}/amc-${PROCESSINGDATE}.log" --def "seriesFormat=${MEDIADIR}/TV/{n}/Season {s}/{n} - {sxe} - {t} [{airdate.format('yyyy.MM.dd')}] [{resolution}_{vc}_{ac}]" "animeFormat=${MEDIADIR}/Anime/{n}/{fn}" "movieFormat=${MEDIADIR}/Movie/{n} ({y}) [{imdbid}]/{n} ({y}) [{hpi} {channels}] [{s3d}]" clean=y music=y artwork=y subtitles=en artwork=y excludeList="${MEDIAEXCLUDEDIR}/amc.txt" > "${MEDIALOGDIR}/filebot-${PROCESSINGDATE}.log" 2>&1
   else
     UPLOADDIR="${user_dir}/upload/${label}"
