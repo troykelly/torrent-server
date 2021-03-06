@@ -42,7 +42,7 @@ password2 = ${GCRYPT_PASSWORD2}
 EOF
 fi
 
-RCLONECMD="${RCLONE} move --delete-after -v --stats 60s /upload google-drive:${DRIVE_TARGETFOLDER}"
+RCLONECMD="${RCLONE} move --delete-after -v --stats 60s /upload gcrypt:${DRIVE_TARGETFOLDER}"
 while :
 do
   nice -n 20 $RCLONECMD
