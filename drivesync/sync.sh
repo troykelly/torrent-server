@@ -9,14 +9,36 @@ RSYNCCONFFILE=$(basename ${RSYNCCONF})
 if [ ! -f ${RSYNCCONF} ]; then
   mkdir -p ${RSYNCCONFFOLDER}
   cat<<EOF>${RSYNCCONFFOLDER}/${RSYNCCONFFILE}
-[google-drive]
+[gdrive]
 type = drive
-client_id = ${GOOGLE_CLIENTID}
-client_secret = ${GOOGLE_CLIENTSECRET}
+client_id = ${GOOGLE_CLIENT_ID}
+client_secret = ${GOOGLE_CLIENT_SECRET}
 scope = drive
 root_folder_id = ${DRIVE_ROOTFOLDER}
+use_trash = false
 skip_gdocs = true
+chunk_size = 32M
 token = {"access_token":"${DRIVE_ACCESSTOKEN}","token_type":"Bearer","refresh_token":"${DRIVE_REFRESHTOKEN}","expiry":"${DRIVE_TOKENEXPIRY}"}
+team_drive = ${DRIVE_ROOTFOLDER}
+
+[gcache]
+type = cache
+remote = gdrive:/gdrive
+plex_url = ${PLEX_URL}
+plex_username = ${PLEX_USERNAME}
+plex_password = ${PLEX_PASSWORD}
+chunk_size = 10M
+info_age = 1h0m0s
+chunk_total_size = 10G
+plex_token = ${PLEX_TOKEN}
+
+[gcrypt]
+type = crypt
+remote = gcache:/crypt
+filename_encryption = standard
+directory_name_encryption = true
+password = ${GCRYPT_PASSWORD}
+password2 = ${GCRYPT_PASSWORD2}
 EOF
 fi
 

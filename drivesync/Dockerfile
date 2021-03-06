@@ -3,7 +3,6 @@ FROM alpine
 ARG APP_USER
 ARG APP_GROUP
 
-
 RUN apk add --no-cache --update curl unzip
 
 RUN cd ~ && \
