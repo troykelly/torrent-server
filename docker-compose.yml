@@ -68,62 +68,6 @@ services:
       - 'APP_USER=${APP_USER}'
       - 'APP_GROUP=${APP_GROUP}'
     restart:       unless-stopped
-  drivesync_media:
-    build:
-      context:     ./drivesync
-      args:
-        - 'APP_USER=${APP_USER}'
-        - 'APP_GROUP=${APP_GROUP}'
-    volumes:
-      - './logs/:/logs/'
-      - './torrents/${MEDIA_USERNAME}/media/:/upload/'
-    environment:
-      - 'GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}'
-      - 'GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}'
-      - 'DRIVE_ROOTFOLDER=${DRIVE_ROOTFOLDER}'
-      - 'DRIVE_ACCESSTOKEN=${DRIVE_ACCESSTOKEN}'
-      - 'DRIVE_REFRESHTOKEN=${DRIVE_REFRESHTOKEN}'
-      - 'DRIVE_TOKENEXPIRY=${DRIVE_TOKENEXPIRY}'
-      - 'GCRYPT_PASSWORD=${GCRYPT_PASSWORD}'
-      - 'GCRYPT_PASSWORD2=${GCRYPT_PASSWORD2}'
-      - 'PLEX_URL=${PLEX_URL}'
-      - 'PLEX_USERNAME=${PLEX_USERNAME}'
-      - 'PLEX_PASSWORD=${PLEX_PASSWORD}'
-      - 'PLEX_TOKEN=${PLEX_TOKEN}'
-      - 'DRIVE_TARGETFOLDER=${MEDIA_DRIVETARGETFOLDER}'
-      - 'APP_USER=${APP_USER}'
-      - 'APP_GROUP=${APP_GROUP}'
-    depends_on:
-      - rutorrent_media
-    restart:       unless-stopped
-  drivesync_other:
-    build:
-      context:     ./drivesync
-      args:
-        - 'APP_USER=${APP_USER}'
-        - 'APP_GROUP=${APP_GROUP}'
-    volumes:
-      - './logs/:/logs/'
-      - './torrents/${OTHER_USERNAME}/upload/:/upload/'
-    environment:
-      - 'GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}'
-      - 'GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}'
-      - 'DRIVE_ROOTFOLDER=${DRIVE_ROOTFOLDER}'
-      - 'DRIVE_ACCESSTOKEN=${DRIVE_ACCESSTOKEN}'
-      - 'DRIVE_REFRESHTOKEN=${DRIVE_REFRESHTOKEN}'
-      - 'DRIVE_TOKENEXPIRY=${DRIVE_TOKENEXPIRY}'
-      - 'GCRYPT_PASSWORD=${GCRYPT_PASSWORD}'
-      - 'GCRYPT_PASSWORD2=${GCRYPT_PASSWORD2}'
-      - 'PLEX_URL=${PLEX_URL}'
-      - 'PLEX_USERNAME=${PLEX_USERNAME}'
-      - 'PLEX_PASSWORD=${PLEX_PASSWORD}'
-      - 'PLEX_TOKEN=${PLEX_TOKEN}'
-      - 'DRIVE_TARGETFOLDER=${OTHER_DRIVETARGETFOLDER}'
-      - 'APP_USER=${APP_USER}'
-      - 'APP_GROUP=${APP_GROUP}'
-    depends_on:
-      - rutorrent_other
-    restart:       unless-stopped
   rutorrent_media:
     build:
       context:     ./ruTorrent
@@ -186,6 +130,117 @@ services:
     ports:
       - '6882:6882'
     restart:       unless-stopped
+  drive-part-a:
+    image: ghcr.io/troykelly/rclone-drive:latest
+    security_opt:
+      - apparmor:unconfined
+    cap_add:
+      - SYS_ADMIN    
+    devices:
+      - "/dev/fuse"
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "${PART_A_SOURCE}:/upload:rw"
+    restart: unless-stopped
+    mem_limit: 4g
+    command: ["/usr/sbin/push.sh"]
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    environment:
+      - USER_EMAIL=${USER_EMAIL}
+      - RCLONE_BUFFER_SIZE=
+      - RCLONE_ZFS_CACHE_MODE=full
+      - RCLONE_ZFS_READ_AHEAD=
+      - RCLONE_TEAMDRIVE=false
+      - RCLONE_CACHE=false
+      - DRIVE_TARGETFOLDER=
+      - GOOGLE_CLIENTID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENTSECRET=${GOOGLE_CLIENT_SECRET}
+      - DRIVE_ROOTFOLDER=${PART_A_DRIVE_ROOTFOLDER}
+      - GCRYPT_PASSWORD=${PART_A_GCRYPT_PASSWORD}
+      - GCRYPT_PASSWORD2=${PART_A_GCRYPT_PASSWORD2}
+      - DRIVE_PROJECT_ID=${DRIVE_PROJECT_ID}
+      - DRIVE_PRIVATE_KEY_ID=${DRIVE_PRIVATE_KEY_ID}
+      - DRIVE_PRIVATE_KEY=${DRIVE_PRIVATE_KEY}
+      - DRIVE_CLIENT_EMAIL=${DRIVE_CLIENT_EMAIL}
+      - DRIVE_CLIENT_ID=${DRIVE_CLIENT_ID}
+      - DRIVE_CERTIFICATE_URL=${DRIVE_CERTIFICATE_URL}
+  drive-part-b:
+    image: ghcr.io/troykelly/rclone-drive:latest
+    security_opt:
+      - apparmor:unconfined
+    cap_add:
+      - SYS_ADMIN    
+    devices:
+      - "/dev/fuse"
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "${PART_B_SOURCE}:/upload:rw"
+    restart: unless-stopped
+    mem_limit: 4g
+    command: ["/usr/sbin/push.sh"]
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    environment:
+      - USER_EMAIL=${USER_EMAIL}
+      - RCLONE_BUFFER_SIZE=
+      - RCLONE_ZFS_CACHE_MODE=full
+      - RCLONE_ZFS_READ_AHEAD=
+      - RCLONE_TEAMDRIVE=false
+      - RCLONE_CACHE=false
+      - DRIVE_TARGETFOLDER=
+      - GOOGLE_CLIENTID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENTSECRET=${GOOGLE_CLIENT_SECRET}
+      - DRIVE_ROOTFOLDER=${PART_B_DRIVE_ROOTFOLDER}
+      - GCRYPT_PASSWORD=${PART_B_GCRYPT_PASSWORD}
+      - GCRYPT_PASSWORD2=${PART_B_GCRYPT_PASSWORD2}
+      - DRIVE_PROJECT_ID=${DRIVE_PROJECT_ID}
+      - DRIVE_PRIVATE_KEY_ID=${DRIVE_PRIVATE_KEY_ID}
+      - DRIVE_PRIVATE_KEY=${DRIVE_PRIVATE_KEY}
+      - DRIVE_CLIENT_EMAIL=${DRIVE_CLIENT_EMAIL}
+      - DRIVE_CLIENT_ID=${DRIVE_CLIENT_ID}
+      - DRIVE_CERTIFICATE_URL=${DRIVE_CERTIFICATE_URL}
+  drive-part-c:
+    image: ghcr.io/troykelly/rclone-drive:latest
+    security_opt:
+      - apparmor:unconfined
+    cap_add:
+      - SYS_ADMIN    
+    devices:
+      - "/dev/fuse"
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "${PART_C_SOURCE}:/upload:rw"
+    restart: unless-stopped
+    mem_limit: 4g
+    command: ["/usr/sbin/push.sh"]
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    environment:
+      - USER_EMAIL=${USER_EMAIL}
+      - RCLONE_BUFFER_SIZE=
+      - RCLONE_ZFS_CACHE_MODE=full
+      - RCLONE_ZFS_READ_AHEAD=
+      - RCLONE_TEAMDRIVE=false
+      - RCLONE_CACHE=false
+      - DRIVE_TARGETFOLDER=
+      - GOOGLE_CLIENTID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENTSECRET=${GOOGLE_CLIENT_SECRET}
+      - DRIVE_ROOTFOLDER=${PART_C_DRIVE_ROOTFOLDER}
+      - GCRYPT_PASSWORD=${PART_C_GCRYPT_PASSWORD}
+      - GCRYPT_PASSWORD2=${PART_C_GCRYPT_PASSWORD2}
+      - DRIVE_PROJECT_ID=${DRIVE_PROJECT_ID}
+      - DRIVE_PRIVATE_KEY_ID=${DRIVE_PRIVATE_KEY_ID}
+      - DRIVE_PRIVATE_KEY=${DRIVE_PRIVATE_KEY}
+      - DRIVE_CLIENT_EMAIL=${DRIVE_CLIENT_EMAIL}
+      - DRIVE_CLIENT_ID=${DRIVE_CLIENT_ID}
+      - DRIVE_CERTIFICATE_URL=${DRIVE_CERTIFICATE_URL}
 networks:
   frontend:        null
   backend:         null

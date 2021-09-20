@@ -687,7 +687,7 @@ else
   if [ $NORUN=="YES" ]; then
     printf "Updating $HTPASSWDDIR/.htpasswd\n"
   fi
-
+  
   cat "$PASSWORDFILE" | $HTPASSWD -i -B -C 11 "$HTPASSWDDIR/.htpasswd" $USERNAME
 fi
 rm -f "$PASSWORDFILE"
@@ -696,7 +696,7 @@ if [ ! -f "$CADDYPASSWDDIR/users" ]; then
   touch "$CADDYPASSWDDIR/users"
 fi
 
-sed -i '/^basicauth \/ ${USERNAME} /d' "$CADDYPASSWDDIR/users"
+sed -i --regexp-extended "/^basicauth\s+\/\s+${USERNAME}\s+/d" "$CADDYPASSWDDIR/users"
 printf "basicauth / ${USERNAME} ${PASSWORD}\n" >> "$CADDYPASSWDDIR/users"
 
 if [ -f "$USERDIR/.session/rtorrent.lock" ]; then
