@@ -22,7 +22,7 @@ services:
       options:
         gelf-address: "${GELF_SERVER}"
         gelf-compression-type: "none"
-        tag: "${SERVER_TAG}-ruwebfiles"
+        tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         labels: "rutorrent,build"
   caddy:
     build:
@@ -60,7 +60,7 @@ services:
       options:
         gelf-address: "${GELF_SERVER}"
         gelf-compression-type: "none"
-        tag: "${SERVER_TAG}-caddy"
+        tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         labels: "caddy"
   php:
     build:
@@ -91,7 +91,7 @@ services:
       options:
         gelf-address: "${GELF_SERVER}"
         gelf-compression-type: "none"
-        tag: "${SERVER_TAG}-rutorrent-php"
+        tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         labels: "rutorrent,php"
   rutorrent_media:
     build:
@@ -131,7 +131,7 @@ services:
       options:
         gelf-address: "${GELF_SERVER}"
         gelf-compression-type: "none"
-        tag: "${SERVER_TAG}-rutorrent-media"
+        tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         labels: "rutorrent,torrent-media"
   rutorrent_other:
     build:
@@ -171,7 +171,7 @@ services:
       options:
         gelf-address: "${GELF_SERVER}"
         gelf-compression-type: "none"
-        tag: "${SERVER_TAG}-rutorrent-other"
+        tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         labels: "rutorrent,torrent-other"
   drive-part-a:
     image: ghcr.io/troykelly/rclone-drive:latest
@@ -218,7 +218,7 @@ services:
       options:
         gelf-address: "${GELF_SERVER}"
         gelf-compression-type: "none"
-        tag: "drive-part-a"
+        tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         labels: "rutorrent,file-push"
   drive-part-b:
     image: ghcr.io/troykelly/rclone-drive:latest
@@ -265,7 +265,7 @@ services:
       options:
         gelf-address: "${GELF_SERVER}"
         gelf-compression-type: "none"
-        tag: "drive-part-b"
+        tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         labels: "rutorrent,file-push"
   drive-part-c:
     image: ghcr.io/troykelly/rclone-drive:latest
@@ -314,7 +314,7 @@ services:
       options:
         gelf-address: "${GELF_SERVER}"
         gelf-compression-type: "none"
-        tag: "drive-part-c"
+        tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         labels: "rutorrent,file-push"
 networks:
   frontend:        null
