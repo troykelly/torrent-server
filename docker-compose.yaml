@@ -17,6 +17,13 @@ services:
       - 'APP_USER=${APP_USER}'
       - 'APP_GROUP=${APP_GROUP}'
     restart:       "no"
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "${GELF_SERVER}"
+        gelf-compression-type: "none"
+        tag: "${SERVER_TAG}-ruwebfiles"
+        labels: "rutorrent,build"
   caddy:
     build:
       context:     ./caddy
@@ -24,6 +31,8 @@ services:
         - 'APP_USER=${APP_USER}'
         - 'APP_GROUP=${APP_GROUP}'
     restart:       unless-stopped
+    tmpfs:
+      - /tmp
     volumes:
       - './certs/:/etc/caddycerts/'
       - './public_html/:${PHP_APP_DIR}/'
@@ -46,6 +55,13 @@ services:
     networks:
       - frontend
       - backend
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "${GELF_SERVER}"
+        gelf-compression-type: "none"
+        tag: "${SERVER_TAG}-caddy"
+        labels: "caddy"
   php:
     build:
       context:     ./php
@@ -54,6 +70,8 @@ services:
         - 'APP_GROUP=${APP_GROUP}'
         - 'PHP_ROOT_DIR=${PHP_ROOT_DIR}'
     working_dir:   '${PHP_APP_DIR}'
+    tmpfs:
+      - /tmp    
     volumes:
       - './public_html/:${PHP_APP_DIR}/'
       - './logs/php/:${PHP_ROOT_DIR}/logs/'
@@ -68,6 +86,13 @@ services:
       - 'APP_USER=${APP_USER}'
       - 'APP_GROUP=${APP_GROUP}'
     restart:       unless-stopped
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "${GELF_SERVER}"
+        gelf-compression-type: "none"
+        tag: "${SERVER_TAG}-rutorrent-php"
+        labels: "rutorrent,php"
   rutorrent_media:
     build:
       context:     ./ruTorrent
@@ -91,6 +116,8 @@ services:
       - 'OSDB_PASSWORD=${OSDB_PASSWORD}'
     networks:
       - torrent
+    tmpfs:
+      - /tmp      
     volumes:
       - './torrents/:/torrents/'
       - './public_html/:/app/'
@@ -99,6 +126,13 @@ services:
     ports:
       - '6881:6881'
     restart:       unless-stopped
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "${GELF_SERVER}"
+        gelf-compression-type: "none"
+        tag: "${SERVER_TAG}-rutorrent-media"
+        labels: "rutorrent,torrent-media"
   rutorrent_other:
     build:
       context:     ./ruTorrent
@@ -122,6 +156,8 @@ services:
       - 'OSDB_PASSWORD=${OSDB_PASSWORD}'
     networks:
       - torrent
+    tmpfs:
+      - /tmp      
     volumes:
       - './torrents/:/torrents/'
       - './public_html/:/app/'
@@ -130,6 +166,13 @@ services:
     ports:
       - '6882:6882'
     restart:       unless-stopped
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "${GELF_SERVER}"
+        gelf-compression-type: "none"
+        tag: "${SERVER_TAG}-rutorrent-other"
+        labels: "rutorrent,torrent-other"
   drive-part-a:
     image: ghcr.io/troykelly/rclone-drive:latest
     security_opt:
@@ -138,6 +181,9 @@ services:
       - SYS_ADMIN    
     devices:
       - "/dev/fuse"
+    tmpfs:
+      - /tmp
+      - /home/drive/.cache
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "${PART_A_SOURCE}:/upload:rw"
@@ -150,7 +196,7 @@ services:
         hard: -1
     environment:
       - USER_EMAIL=${USER_EMAIL}
-      - RCLONE_BUFFER_SIZE=
+      - RCLONE_BUFFER_SIZE=128M
       - RCLONE_ZFS_CACHE_MODE=full
       - RCLONE_ZFS_READ_AHEAD=
       - RCLONE_TEAMDRIVE=false
@@ -167,6 +213,13 @@ services:
       - DRIVE_CLIENT_EMAIL=${DRIVE_CLIENT_EMAIL}
       - DRIVE_CLIENT_ID=${DRIVE_CLIENT_ID}
       - DRIVE_CERTIFICATE_URL=${DRIVE_CERTIFICATE_URL}
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "${GELF_SERVER}"
+        gelf-compression-type: "none"
+        tag: "drive-part-a"
+        labels: "rutorrent,file-push"
   drive-part-b:
     image: ghcr.io/troykelly/rclone-drive:latest
     security_opt:
@@ -175,6 +228,9 @@ services:
       - SYS_ADMIN    
     devices:
       - "/dev/fuse"
+    tmpfs:
+      - /tmp
+      - /home/drive/.cache
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "${PART_B_SOURCE}:/upload:rw"
@@ -187,7 +243,7 @@ services:
         hard: -1
     environment:
       - USER_EMAIL=${USER_EMAIL}
-      - RCLONE_BUFFER_SIZE=
+      - RCLONE_BUFFER_SIZE=128M
       - RCLONE_ZFS_CACHE_MODE=full
       - RCLONE_ZFS_READ_AHEAD=
       - RCLONE_TEAMDRIVE=false
@@ -204,6 +260,13 @@ services:
       - DRIVE_CLIENT_EMAIL=${DRIVE_CLIENT_EMAIL}
       - DRIVE_CLIENT_ID=${DRIVE_CLIENT_ID}
       - DRIVE_CERTIFICATE_URL=${DRIVE_CERTIFICATE_URL}
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "${GELF_SERVER}"
+        gelf-compression-type: "none"
+        tag: "drive-part-b"
+        labels: "rutorrent,file-push"
   drive-part-c:
     image: ghcr.io/troykelly/rclone-drive:latest
     security_opt:
@@ -212,6 +275,9 @@ services:
       - SYS_ADMIN    
     devices:
       - "/dev/fuse"
+    tmpfs:
+      - /tmp      
+      - /home/drive/.cache
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "${PART_C_SOURCE}:/upload:rw"
@@ -224,7 +290,7 @@ services:
         hard: -1
     environment:
       - USER_EMAIL=${USER_EMAIL}
-      - RCLONE_BUFFER_SIZE=
+      - RCLONE_BUFFER_SIZE=128M
       - RCLONE_ZFS_CACHE_MODE=full
       - RCLONE_ZFS_READ_AHEAD=
       - RCLONE_TEAMDRIVE=false
@@ -241,6 +307,15 @@ services:
       - DRIVE_CLIENT_EMAIL=${DRIVE_CLIENT_EMAIL}
       - DRIVE_CLIENT_ID=${DRIVE_CLIENT_ID}
       - DRIVE_CERTIFICATE_URL=${DRIVE_CERTIFICATE_URL}
+      - BANDWIDTH_INGRESS=7M
+      - BANDWIDTH_EGRESS=7M
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "${GELF_SERVER}"
+        gelf-compression-type: "none"
+        tag: "drive-part-c"
+        labels: "rutorrent,file-push"
 networks:
   frontend:        null
   backend:         null
