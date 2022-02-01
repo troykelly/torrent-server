@@ -1,322 +1,326 @@
-version:           '3.5'
+---
+version: '3.5'
 services:
   ruwebfiles:
     build:
-      context:     ./ruWebfiles
+      context: "./ruWebfiles"
       args:
-        - 'APP_USER=${APP_USER}'
-        - 'APP_GROUP=${APP_GROUP}'
+      - APP_USER=${APP_USER}
+      - APP_GROUP=${APP_GROUP}
     volumes:
-      - './public_html/:/app/'
-      - './torrents/:/torrents/'
-      - './security/:/security/'
+    - "./public_html/:/app/"
+    - "./torrents/:/torrents/"
+    - "./security/:/security/"
     depends_on:
-      - php
+    - php
     environment:
-      - 'RUREPO=${RUREPO}'
-      - 'APP_USER=${APP_USER}'
-      - 'APP_GROUP=${APP_GROUP}'
-    restart:       "no"
+    - RUREPO=${RUREPO}
+    - APP_USER=${APP_USER}
+    - APP_GROUP=${APP_GROUP}
+    restart: 'no'
     logging:
       driver: gelf
       options:
         gelf-address: "${GELF_SERVER}"
-        gelf-compression-type: "none"
+        gelf-compression-type: none
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
-        labels: "rutorrent,build"
+        labels: rutorrent,build
   caddy:
     build:
-      context:     ./caddy
+      context: "./caddy"
       args:
-        - 'APP_USER=${APP_USER}'
-        - 'APP_GROUP=${APP_GROUP}'
-    restart:       unless-stopped
+      - APP_USER=${APP_USER}
+      - APP_GROUP=${APP_GROUP}
+    restart: unless-stopped
     tmpfs:
-      - /tmp
+    - "/tmp"
     volumes:
-      - './certs/:/etc/caddycerts/'
-      - './public_html/:${PHP_APP_DIR}/'
-      - './logs/caddy/:/log/'
-      - './security/caddy/:/etc/caddyusers/'
+    - "./certs/:/etc/caddycerts/"
+    - "./public_html/:${PHP_APP_DIR}/"
+    - "./logs/caddy/:/log/"
+    - "./security/caddy/:/etc/caddyusers/"
     ports:
-      - '80:80'
-      - '443:443'
+    - 80:80
+    - 443:443
     depends_on:
-      - php
-      - ruwebfiles
+    - php
+    - ruwebfiles
     environment:
-      - CADDYPATH=/etc/caddycerts
-      - 'APP_USER=${APP_USER}'
-      - 'APP_GROUP=${APP_GROUP}'
-      - 'DOMAIN_NAME=${DOMAIN_NAME}'
-      - 'PHP_APP_DIR=${PHP_APP_DIR}'
-      - 'TLS_EMAIL=${TLS_EMAIL}'
-      - ACME_AGREE=true
+    - CADDYPATH=/etc/caddycerts
+    - APP_USER=${APP_USER}
+    - APP_GROUP=${APP_GROUP}
+    - DOMAIN_NAME=${DOMAIN_NAME}
+    - PHP_APP_DIR=${PHP_APP_DIR}
+    - TLS_EMAIL=${TLS_EMAIL}
+    - ACME_AGREE=true
     networks:
-      - frontend
-      - backend
+    - frontend
+    - backend
     logging:
       driver: gelf
       options:
         gelf-address: "${GELF_SERVER}"
-        gelf-compression-type: "none"
+        gelf-compression-type: none
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
-        labels: "caddy"
+        labels: caddy
   php:
     build:
-      context:     ./php
+      context: "./php"
       args:
-        - 'APP_USER=${APP_USER}'
-        - 'APP_GROUP=${APP_GROUP}'
-        - 'PHP_ROOT_DIR=${PHP_ROOT_DIR}'
-    working_dir:   '${PHP_APP_DIR}'
+      - APP_USER=${APP_USER}
+      - APP_GROUP=${APP_GROUP}
+      - PHP_ROOT_DIR=${PHP_ROOT_DIR}
+    working_dir: "${PHP_APP_DIR}"
     tmpfs:
-      - /tmp    
+    - "/tmp"
     volumes:
-      - './public_html/:${PHP_APP_DIR}/'
-      - './logs/php/:${PHP_ROOT_DIR}/logs/'
-      - './torrents/:/torrents/'
-      - '/etc/timezone:/etc/timezone:ro'
-      - '/etc/localtime:/etc/localtime:ro'
+    - "./public_html/:${PHP_APP_DIR}/"
+    - "./logs/php/:${PHP_ROOT_DIR}/logs/"
+    - "./torrents/:/torrents/"
+    - "/etc/timezone:/etc/timezone:ro"
+    - "/etc/localtime:/etc/localtime:ro"
     networks:
-      - backend
-      - torrent
+    - backend
+    - torrent
     environment:
-      - 'PHP_ROOT_DIR=${PHP_ROOT_DIR}'
-      - 'APP_USER=${APP_USER}'
-      - 'APP_GROUP=${APP_GROUP}'
-    restart:       unless-stopped
+    - PHP_ROOT_DIR=${PHP_ROOT_DIR}
+    - APP_USER=${APP_USER}
+    - APP_GROUP=${APP_GROUP}
+    restart: unless-stopped
     logging:
       driver: gelf
       options:
         gelf-address: "${GELF_SERVER}"
-        gelf-compression-type: "none"
+        gelf-compression-type: none
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
-        labels: "rutorrent,php"
+        labels: rutorrent,php
   rutorrent_media:
     build:
-      context:     ./ruTorrent
+      context: "./ruTorrent"
       args:
-        - 'APP_USER=${APP_USER}'
-        - 'APP_GROUP=${APP_GROUP}'
-        - 'RUUSER=${MEDIA_USERNAME}'
-        - 'PORT=${MEDIA_PORT}'
-        - 'DHTPORT=${MEDIA_DHT}'
+      - APP_USER=${APP_USER}
+      - APP_GROUP=${APP_GROUP}
+      - RUUSER=${MEDIA_USERNAME}
+      - PORT=${MEDIA_PORT}
+      - DHTPORT=${MEDIA_DHT}
     depends_on:
-      - ruwebfiles
+    - ruwebfiles
     environment:
-      - 'FILEBOT_LICENSE_BASE64=${FILEBOT_LICENSE_BASE64}'
-      - 'APP_USER=${APP_USER}'
-      - 'APP_GROUP=${APP_GROUP}'
-      - 'RUUSER=${MEDIA_USERNAME}'
-      - 'PASSWORD=${MEDIA_PASSWORD}'
-      - 'PORT=${MEDIA_PORT}'
-      - 'DHTPORT=${MEDIA_DHT}'
-      - 'OSDB_USER=${OSDB_USERNAME}'
-      - 'OSDB_PASSWORD=${OSDB_PASSWORD}'
+    - FILEBOT_LICENSE_BASE64=${FILEBOT_LICENSE_BASE64}
+    - APP_USER=${APP_USER}
+    - APP_GROUP=${APP_GROUP}
+    - RUUSER=${MEDIA_USERNAME}
+    - PASSWORD=${MEDIA_PASSWORD}
+    - PORT=${MEDIA_PORT}
+    - DHTPORT=${MEDIA_DHT}
+    - OSDB_USER=${OSDB_USERNAME}
+    - OSDB_PASSWORD=${OSDB_PASSWORD}
     networks:
-      - torrent
+    - torrent
     tmpfs:
-      - /tmp      
+    - "/tmp"
     volumes:
-      - './torrents/:/torrents/'
-      - './public_html/:/app/'
-      - './security/:/app-data/'
-      - './filebot/:/torrents/${MEDIA_USERNAME}/.filebot/'
+    - "./torrents/:/torrents/"
+    - "./public_html/:/app/"
+    - "./security/:/app-data/"
+    - "./filebot/:/torrents/${MEDIA_USERNAME}/.filebot/"
     ports:
-      - '6881:6881'
-    restart:       unless-stopped
+    - 6881:6881
+    restart: unless-stopped
     logging:
       driver: gelf
       options:
         gelf-address: "${GELF_SERVER}"
-        gelf-compression-type: "none"
+        gelf-compression-type: none
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
-        labels: "rutorrent,torrent-media"
+        labels: rutorrent,torrent-media
   rutorrent_other:
     build:
-      context:     ./ruTorrent
+      context: "./ruTorrent"
       args:
-        - 'APP_USER=${APP_USER}'
-        - 'APP_GROUP=${APP_GROUP}'
-        - 'RUUSER=${OTHER_USERNAME}'
-        - 'PORT=${OTHER_PORT}'
-        - 'DHTPORT=${OTHER_DHT}'
+      - APP_USER=${APP_USER}
+      - APP_GROUP=${APP_GROUP}
+      - RUUSER=${OTHER_USERNAME}
+      - PORT=${OTHER_PORT}
+      - DHTPORT=${OTHER_DHT}
     depends_on:
-      - ruwebfiles
+    - ruwebfiles
     environment:
-      - 'FILEBOT_LICENSE_BASE64=${FILEBOT_LICENSE_BASE64}'
-      - 'APP_USER=${APP_USER}'
-      - 'APP_GROUP=${APP_GROUP}'
-      - 'RUUSER=${OTHER_USERNAME}'
-      - 'PASSWORD=${OTHER_PASSWORD}'
-      - 'PORT=${OTHER_PORT}'
-      - 'DHTPORT=${OTHER_DHT}'
-      - 'OSDB_USER=${OSDB_USERNAME}'
-      - 'OSDB_PASSWORD=${OSDB_PASSWORD}'
+    - FILEBOT_LICENSE_BASE64=${FILEBOT_LICENSE_BASE64}
+    - APP_USER=${APP_USER}
+    - APP_GROUP=${APP_GROUP}
+    - RUUSER=${OTHER_USERNAME}
+    - PASSWORD=${OTHER_PASSWORD}
+    - PORT=${OTHER_PORT}
+    - DHTPORT=${OTHER_DHT}
+    - OSDB_USER=${OSDB_USERNAME}
+    - OSDB_PASSWORD=${OSDB_PASSWORD}
     networks:
-      - torrent
+    - torrent
     tmpfs:
-      - /tmp      
+    - "/tmp"
     volumes:
-      - './torrents/:/torrents/'
-      - './public_html/:/app/'
-      - './security/:/app-data/'
-      - './filebot/:/torrents/${MEDIA_USERNAME}/.filebot/'
+    - "./torrents/:/torrents/"
+    - "./public_html/:/app/"
+    - "./security/:/app-data/"
+    - "./filebot/:/torrents/${MEDIA_USERNAME}/.filebot/"
     ports:
-      - '6882:6882'
-    restart:       unless-stopped
+    - 6882:6882
+    restart: unless-stopped
     logging:
       driver: gelf
       options:
         gelf-address: "${GELF_SERVER}"
-        gelf-compression-type: "none"
+        gelf-compression-type: none
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
-        labels: "rutorrent,torrent-other"
+        labels: rutorrent,torrent-other
   drive-part-a:
     image: ghcr.io/troykelly/rclone-drive:latest
     security_opt:
-      - apparmor:unconfined
+    - apparmor:unconfined
     cap_add:
-      - SYS_ADMIN    
+    - SYS_ADMIN
     devices:
-      - "/dev/fuse"
+    - "/dev/fuse"
     tmpfs:
-      - /tmp
-      - /home/drive/.cache
+    - "/tmp"
+    - "/home/drive/.cache"
     volumes:
-      - "/etc/localtime:/etc/localtime:ro"
-      - "${PART_A_SOURCE}:/upload:rw"
+    - "/etc/localtime:/etc/localtime:ro"
+    - "${PART_A_SOURCE}:/upload:rw"
     restart: unless-stopped
     mem_limit: 4g
-    command: ["/usr/sbin/push.sh"]
+    command:
+    - "/usr/sbin/push"
     ulimits:
       memlock:
         soft: -1
         hard: -1
     environment:
-      - USER_EMAIL=${USER_EMAIL}
-      - RCLONE_BUFFER_SIZE=128M
-      - RCLONE_ZFS_CACHE_MODE=full
-      - RCLONE_ZFS_READ_AHEAD=
-      - RCLONE_TEAMDRIVE=false
-      - RCLONE_CACHE=false
-      - DRIVE_TARGETFOLDER=
-      - GOOGLE_CLIENTID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENTSECRET=${GOOGLE_CLIENT_SECRET}
-      - DRIVE_ROOTFOLDER=${PART_A_DRIVE_ROOTFOLDER}
-      - GCRYPT_PASSWORD=${PART_A_GCRYPT_PASSWORD}
-      - GCRYPT_PASSWORD2=${PART_A_GCRYPT_PASSWORD2}
-      - DRIVE_PROJECT_ID=${DRIVE_PROJECT_ID}
-      - DRIVE_PRIVATE_KEY_ID=${DRIVE_PRIVATE_KEY_ID}
-      - DRIVE_PRIVATE_KEY=${DRIVE_PRIVATE_KEY}
-      - DRIVE_CLIENT_EMAIL=${DRIVE_CLIENT_EMAIL}
-      - DRIVE_CLIENT_ID=${DRIVE_CLIENT_ID}
-      - DRIVE_CERTIFICATE_URL=${DRIVE_CERTIFICATE_URL}
+    - USER_EMAIL=${USER_EMAIL}
+    - RCLONE_BUFFER_SIZE=128M
+    - RCLONE_ZFS_CACHE_MODE=full
+    - RCLONE_ZFS_READ_AHEAD=
+    - RCLONE_TEAMDRIVE=false
+    - RCLONE_CACHE=false
+    - DRIVE_TARGETFOLDER=
+    - GOOGLE_CLIENTID=${GOOGLE_CLIENT_ID}
+    - GOOGLE_CLIENTSECRET=${GOOGLE_CLIENT_SECRET}
+    - DRIVE_ROOTFOLDER=${PART_A_DRIVE_ROOTFOLDER}
+    - GCRYPT_PASSWORD=${PART_A_GCRYPT_PASSWORD}
+    - GCRYPT_PASSWORD2=${PART_A_GCRYPT_PASSWORD2}
+    - DRIVE_PROJECT_ID=${DRIVE_PROJECT_ID}
+    - DRIVE_PRIVATE_KEY_ID=${DRIVE_PRIVATE_KEY_ID}
+    - DRIVE_PRIVATE_KEY=${DRIVE_PRIVATE_KEY}
+    - DRIVE_CLIENT_EMAIL=${DRIVE_CLIENT_EMAIL}
+    - DRIVE_CLIENT_ID=${DRIVE_CLIENT_ID}
+    - DRIVE_CERTIFICATE_URL=${DRIVE_CERTIFICATE_URL}
     logging:
       driver: gelf
       options:
         gelf-address: "${GELF_SERVER}"
-        gelf-compression-type: "none"
+        gelf-compression-type: none
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
-        labels: "rutorrent,file-push"
+        labels: rutorrent,file-push
   drive-part-b:
     image: ghcr.io/troykelly/rclone-drive:latest
     security_opt:
-      - apparmor:unconfined
+    - apparmor:unconfined
     cap_add:
-      - SYS_ADMIN    
+    - SYS_ADMIN
     devices:
-      - "/dev/fuse"
+    - "/dev/fuse"
     tmpfs:
-      - /tmp
-      - /home/drive/.cache
+    - "/tmp"
+    - "/home/drive/.cache"
     volumes:
-      - "/etc/localtime:/etc/localtime:ro"
-      - "${PART_B_SOURCE}:/upload:rw"
+    - "/etc/localtime:/etc/localtime:ro"
+    - "${PART_B_SOURCE}:/upload:rw"
     restart: unless-stopped
     mem_limit: 4g
-    command: ["/usr/sbin/push.sh"]
+    command:
+    - "/usr/sbin/push"
     ulimits:
       memlock:
         soft: -1
         hard: -1
     environment:
-      - USER_EMAIL=${USER_EMAIL}
-      - RCLONE_BUFFER_SIZE=128M
-      - RCLONE_ZFS_CACHE_MODE=full
-      - RCLONE_ZFS_READ_AHEAD=
-      - RCLONE_TEAMDRIVE=false
-      - RCLONE_CACHE=false
-      - DRIVE_TARGETFOLDER=
-      - GOOGLE_CLIENTID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENTSECRET=${GOOGLE_CLIENT_SECRET}
-      - DRIVE_ROOTFOLDER=${PART_B_DRIVE_ROOTFOLDER}
-      - GCRYPT_PASSWORD=${PART_B_GCRYPT_PASSWORD}
-      - GCRYPT_PASSWORD2=${PART_B_GCRYPT_PASSWORD2}
-      - DRIVE_PROJECT_ID=${DRIVE_PROJECT_ID}
-      - DRIVE_PRIVATE_KEY_ID=${DRIVE_PRIVATE_KEY_ID}
-      - DRIVE_PRIVATE_KEY=${DRIVE_PRIVATE_KEY}
-      - DRIVE_CLIENT_EMAIL=${DRIVE_CLIENT_EMAIL}
-      - DRIVE_CLIENT_ID=${DRIVE_CLIENT_ID}
-      - DRIVE_CERTIFICATE_URL=${DRIVE_CERTIFICATE_URL}
+    - USER_EMAIL=${USER_EMAIL}
+    - RCLONE_BUFFER_SIZE=128M
+    - RCLONE_ZFS_CACHE_MODE=full
+    - RCLONE_ZFS_READ_AHEAD=
+    - RCLONE_TEAMDRIVE=false
+    - RCLONE_CACHE=false
+    - DRIVE_TARGETFOLDER=
+    - GOOGLE_CLIENTID=${GOOGLE_CLIENT_ID}
+    - GOOGLE_CLIENTSECRET=${GOOGLE_CLIENT_SECRET}
+    - DRIVE_ROOTFOLDER=${PART_B_DRIVE_ROOTFOLDER}
+    - GCRYPT_PASSWORD=${PART_B_GCRYPT_PASSWORD}
+    - GCRYPT_PASSWORD2=${PART_B_GCRYPT_PASSWORD2}
+    - DRIVE_PROJECT_ID=${DRIVE_PROJECT_ID}
+    - DRIVE_PRIVATE_KEY_ID=${DRIVE_PRIVATE_KEY_ID}
+    - DRIVE_PRIVATE_KEY=${DRIVE_PRIVATE_KEY}
+    - DRIVE_CLIENT_EMAIL=${DRIVE_CLIENT_EMAIL}
+    - DRIVE_CLIENT_ID=${DRIVE_CLIENT_ID}
+    - DRIVE_CERTIFICATE_URL=${DRIVE_CERTIFICATE_URL}
     logging:
       driver: gelf
       options:
         gelf-address: "${GELF_SERVER}"
-        gelf-compression-type: "none"
+        gelf-compression-type: none
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
-        labels: "rutorrent,file-push"
+        labels: rutorrent,file-push
   drive-part-c:
     image: ghcr.io/troykelly/rclone-drive:latest
     security_opt:
-      - apparmor:unconfined
+    - apparmor:unconfined
     cap_add:
-      - SYS_ADMIN    
+    - SYS_ADMIN
     devices:
-      - "/dev/fuse"
+    - "/dev/fuse"
     tmpfs:
-      - /tmp      
-      - /home/drive/.cache
+    - "/tmp"
+    - "/home/drive/.cache"
     volumes:
-      - "/etc/localtime:/etc/localtime:ro"
-      - "${PART_C_SOURCE}:/upload:rw"
+    - "/etc/localtime:/etc/localtime:ro"
+    - "${PART_C_SOURCE}:/upload:rw"
     restart: unless-stopped
     mem_limit: 4g
-    command: ["/usr/sbin/push.sh"]
+    command:
+    - "/usr/sbin/push"
     ulimits:
       memlock:
         soft: -1
         hard: -1
     environment:
-      - USER_EMAIL=${USER_EMAIL}
-      - RCLONE_BUFFER_SIZE=128M
-      - RCLONE_ZFS_CACHE_MODE=full
-      - RCLONE_ZFS_READ_AHEAD=
-      - RCLONE_TEAMDRIVE=false
-      - RCLONE_CACHE=false
-      - DRIVE_TARGETFOLDER=
-      - GOOGLE_CLIENTID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENTSECRET=${GOOGLE_CLIENT_SECRET}
-      - DRIVE_ROOTFOLDER=${PART_C_DRIVE_ROOTFOLDER}
-      - GCRYPT_PASSWORD=${PART_C_GCRYPT_PASSWORD}
-      - GCRYPT_PASSWORD2=${PART_C_GCRYPT_PASSWORD2}
-      - DRIVE_PROJECT_ID=${DRIVE_PROJECT_ID}
-      - DRIVE_PRIVATE_KEY_ID=${DRIVE_PRIVATE_KEY_ID}
-      - DRIVE_PRIVATE_KEY=${DRIVE_PRIVATE_KEY}
-      - DRIVE_CLIENT_EMAIL=${DRIVE_CLIENT_EMAIL}
-      - DRIVE_CLIENT_ID=${DRIVE_CLIENT_ID}
-      - DRIVE_CERTIFICATE_URL=${DRIVE_CERTIFICATE_URL}
-      - BANDWIDTH_INGRESS=7M
-      - BANDWIDTH_EGRESS=7M
+    - USER_EMAIL=${USER_EMAIL}
+    - RCLONE_BUFFER_SIZE=128M
+    - RCLONE_ZFS_CACHE_MODE=full
+    - RCLONE_ZFS_READ_AHEAD=
+    - RCLONE_TEAMDRIVE=false
+    - RCLONE_CACHE=false
+    - DRIVE_TARGETFOLDER=
+    - GOOGLE_CLIENTID=${GOOGLE_CLIENT_ID}
+    - GOOGLE_CLIENTSECRET=${GOOGLE_CLIENT_SECRET}
+    - DRIVE_ROOTFOLDER=${PART_C_DRIVE_ROOTFOLDER}
+    - GCRYPT_PASSWORD=${PART_C_GCRYPT_PASSWORD}
+    - GCRYPT_PASSWORD2=${PART_C_GCRYPT_PASSWORD2}
+    - DRIVE_PROJECT_ID=${DRIVE_PROJECT_ID}
+    - DRIVE_PRIVATE_KEY_ID=${DRIVE_PRIVATE_KEY_ID}
+    - DRIVE_PRIVATE_KEY=${DRIVE_PRIVATE_KEY}
+    - DRIVE_CLIENT_EMAIL=${DRIVE_CLIENT_EMAIL}
+    - DRIVE_CLIENT_ID=${DRIVE_CLIENT_ID}
+    - DRIVE_CERTIFICATE_URL=${DRIVE_CERTIFICATE_URL}
+    - BANDWIDTH_INGRESS=7M
+    - BANDWIDTH_EGRESS=7M
     logging:
       driver: gelf
       options:
         gelf-address: "${GELF_SERVER}"
-        gelf-compression-type: "none"
+        gelf-compression-type: none
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
-        labels: "rutorrent,file-push"
+        labels: rutorrent,file-push
 networks:
-  frontend:        null
-  backend:         null
-  torrent:         null
+  frontend:
+  backend:
+  torrent:
