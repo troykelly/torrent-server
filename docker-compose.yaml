@@ -165,8 +165,8 @@ services:
       - "./torrents/:/torrents/"
       - "./public_html/:/app/"
       - "./security/:/app-data/"
-      - "./filebot/:/torrents/${MEDIA_USERNAME}/.filebot/"
-      - "partc:/torrents/${MEDIA_USERNAME}/upload:rw"
+      - "./filebot/:/torrents/${OTHER_USERNAME}/.filebot/"
+      - "partc:/torrents/${OTHER_USERNAME}/upload:rw"
     ports:
       - 6882:6882
     restart: unless-stopped
