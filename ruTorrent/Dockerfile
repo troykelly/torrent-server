@@ -1,13 +1,13 @@
 FROM ubuntu
 
-ARG APP_USER
-ARG APP_GROUP
-ARG RUUSER
-ARG PORT
-ARG DHTPORT
+ARG APP_USER=rutorrent
+ARG APP_GROUP=rutorreent
+ARG RUUSER=rutorrent
+ARG PORT=5001
+ARG DHTPORT=6881
 ARG FILEBOT_VERSION=4.9.4
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN echo "APT::Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries && \
  apt-get update && \
@@ -26,7 +26,7 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
  dpkg-reconfigure --frontend=noninteractive locales && \
  update-locale LANG=en_US.UTF-8
 
-ENV LANG en_US.UTF-8 
+ENV LANG=en_US.UTF-8 
 
 COPY torrent.sh /usr/sbin/
 RUN chmod +x /usr/sbin/torrent.sh
@@ -34,7 +34,8 @@ RUN chmod +x /usr/sbin/torrent.sh
 RUN groupadd -g 1000 ${APP_GROUP} && \
  useradd -u 1000 -c "Torrent User" -d /torrents/${RUUSER} -g ${APP_GROUP} -m ${RUUSER} && \
  mkdir -p /torrents/${RUUSER}/.filebot/cache && \
- chown -R ${RUUSER}:${APP_GROUP} /torrents /etc/filebot /torrents/${RUUSER}/.filebot /app /app-data;
+ chown -R ${RUUSER}:${APP_GROUP} /torrents /etc/filebot /torrents/${RUUSER}/.filebot /app /app-data && \
+ ls -al /torrents/${RUUSER}
 
 USER ${RUUSER}:${APP_GROUP}
 
