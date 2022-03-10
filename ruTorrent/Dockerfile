@@ -5,7 +5,7 @@ ARG APP_GROUP
 ARG RUUSER
 ARG PORT
 ARG DHTPORT
-ARG FILEBOT_VERSION=4.9.3
+ARG FILEBOT_VERSION=4.9.4
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -33,7 +33,7 @@ RUN chmod +x /usr/sbin/torrent.sh
 
 RUN groupadd -g 1000 ${APP_GROUP} && \
  useradd -u 1000 -c "Torrent User" -d /torrents/${RUUSER} -g ${APP_GROUP} -m ${RUUSER} && \
- mkdir -p /torrents/${RUUSER}/.filebot && \
+ mkdir -p /torrents/${RUUSER}/.filebot./cache && \
  chown -R ${RUUSER}:${APP_GROUP} /torrents /etc/filebot /torrents/${RUUSER}/.filebot /app /app-data;
 
 USER ${RUUSER}:${APP_GROUP}
