@@ -122,6 +122,7 @@ services:
       - DHTPORT=${MEDIA_DHT}
       - OSDB_USER=${OSDB_USERNAME}
       - OSDB_PASSWORD=${OSDB_PASSWORD}
+      - DOCKER_GATEWAY_HOST=${DOCKER_GATEWAY_HOST:-host.docker.internal}
     network_mode: "host"
     tmpfs:
       - "/tmp"
@@ -166,6 +167,7 @@ services:
       - DHTPORT=${OTHER_DHT}
       - OSDB_USER=${OSDB_USERNAME}
       - OSDB_PASSWORD=${OSDB_PASSWORD}
+      - DOCKER_GATEWAY_HOST=${DOCKER_GATEWAY_HOST:-host.docker.internal}
     network_mode: "host"
     tmpfs:
       - "/tmp"
