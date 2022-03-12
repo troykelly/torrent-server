@@ -5,7 +5,7 @@ ARG APP_GROUP
 
 RUN apk update && \
  apk upgrade && \
- apk add --no-cache git;
+ apk add --no-cache git bash;
 
 COPY getfiles.sh /usr/sbin/
 RUN chmod +x /usr/sbin/getfiles.sh
