@@ -10,17 +10,43 @@ ARG FILEBOT_VERSION=4.9.4
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN echo "APT::Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries && \
- apt-get update && \
- apt-get install -y software-properties-common locales && \
- apt-add-repository universe && \
- add-apt-repository ppa:ondrej/php && \
- apt-get update && \
- apt-get -y upgrade && \
- apt-get -y install python3-pip sox unzip php5.6-cli php5.6-mcrypt php5.6-zip git wget curl mediainfo ffmpeg cmake screen lftp unrar apache2-utils rtorrent p7zip-full screen net-tools && \
- pip3 install cfscrape && \
- wget -S "https://get.filebot.net/filebot/FileBot_${FILEBOT_VERSION}/FileBot_${FILEBOT_VERSION}_universal.deb" && \
- apt -y install ./FileBot_${FILEBOT_VERSION}_universal.deb && \
- mkdir -p /torrents /etc/filebot /app /app-data;
+    apt-get update && \
+    apt-get install -y software-properties-common locales && \
+    apt-add-repository universe && \
+    add-apt-repository ppa:ondrej/php && \
+    apt-get update && \
+    apt-get -y full-upgrade && \
+    apt-get -y install apache2-utils \
+        apt-transport-https \
+        cmake \
+        curl \
+        debian-archive-keyring \
+        debian-keyring \
+        ffmpeg \
+        git \
+        lftp \
+        mediainfo \
+        net-tools \
+        p7zip-full \
+        php5.6-cli \
+        php5.6-mcrypt \
+        php5.6-zip \
+        python3-pip \
+        rtorrent \
+        screen \
+        screen \
+        sox \
+        unrar \
+        unzip \
+        wget && \
+    curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo tee /etc/apt/trusted.gpg.d/caddy-stable.asc && \
+    curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list && \
+    sudo apt update && \
+    apt install -y caddy && \
+    pip3 install cfscrape && \
+    wget -S "https://get.filebot.net/filebot/FileBot_${FILEBOT_VERSION}/FileBot_${FILEBOT_VERSION}_universal.deb" && \
+    apt -y install ./FileBot_${FILEBOT_VERSION}_universal.deb && \
+    mkdir -p /torrents /etc/filebot /app /app-data;
 
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
  dpkg-reconfigure --frontend=noninteractive locales && \

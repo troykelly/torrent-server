@@ -3,6 +3,7 @@ SCRIPTFULL=${0##*/}
 
 RTORRENT=$(command -v rtorrent)
 HTPASSWD=$(command -v htpasswd)
+CADDY=$(command -v caddy)
 PHPCLI=$(command -v php)
 FILEBOT=$(command -v filebot)
 HOSTNAME=$(hostname)
@@ -697,7 +698,7 @@ if [ ! -f "$CADDYPASSWDDIR/users" ]; then
 fi
 
 sed -i --regexp-extended "/^basicauth\s+?.+\s+?(\{\s+)?${USERNAME}\s+/d" "$CADDYPASSWDDIR/users"
-CADDY_PASSWORD=$(htpasswd -bnBC 10 "" "${PASSWORD}" | tr -d ':\n' | sed 's/$2y/$2a/')
+CADDY_PASSWORD=$(${CADDY} hash-password -plaintext "${PASSWORD}")
 printf "basicauth / { ${USERNAME} ${CADDY_PASSWORD} }\n" >> "$CADDYPASSWDDIR/users"
 
 if [ -f "$USERDIR/.session/rtorrent.lock" ]; then
