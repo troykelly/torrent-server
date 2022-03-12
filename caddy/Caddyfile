@@ -13,7 +13,9 @@
         }
     }     
 
-    import /etc/caddyusers/users
+    basicauth bcrypt rutorrent {
+        import /etc/caddyusers/users
+    }
 
     # PHP-FPM Configuration for Caddy
     php_fastcgi php:9005
