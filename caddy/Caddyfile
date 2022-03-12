@@ -4,6 +4,7 @@
         gzip
         zstd
     }
+    root * {$PHP_APP_DIR}
     log {
         output file /log/access.log {
             roll_size 1gb

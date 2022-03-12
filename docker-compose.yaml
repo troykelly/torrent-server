@@ -35,10 +35,11 @@ services:
     tmpfs:
       - "/tmp"
     volumes:
-      - "./certs/:/etc/caddycerts/"
       - "./public_html/:${PHP_APP_DIR}/"
       - "./logs/caddy/:/log/"
       - "./security/caddy/:/etc/caddyusers/"
+      - "./certs/data:/data"
+      - "./certs/config:/config"
     ports:
       - 80:80
       - 443:443
