@@ -525,7 +525,7 @@ cat<<EOF>"$RUTORRENTCONFDIR/$USERNAME/config.php"
 	\$forbidUserSettings = false;
 
 	\$scgi_port = ${PORT};
-	\$scgi_host = "127.0.0.1";
+	\$scgi_host = "${DOCKER_GATEWAY_HOST}";
 
 	#\$scgi_port = 0;
 	#\$scgi_host = "unix://$RPCSOCKET";
