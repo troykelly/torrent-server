@@ -1,4 +1,4 @@
-FROM abiosoft/caddy
+FROM caddy
 
 ARG APP_USER
 ARG APP_GROUP
