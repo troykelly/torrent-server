@@ -52,7 +52,7 @@ services:
       - PHP_APP_DIR=${PHP_APP_DIR}
       - TLS_EMAIL=${TLS_EMAIL}
       - ACME_AGREE=true
-      - PHP_FPM_HOST=${DOCKER_GATEWAY_HOST:-host.docker.internal}:9000
+      - PHP_FPM_HOST=localhost:9000
     logging:
       driver: gelf
       options:
