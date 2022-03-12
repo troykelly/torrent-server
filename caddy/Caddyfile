@@ -17,8 +17,7 @@
     }
 
     # PHP-FPM Configuration for Caddy
-    php_fastcgi php:9005 {
+    php_fastcgi php:9000 {
         root {$PHP_APP_DIR}
-    }    
-    php_fastcgi php:9005
+    }
 }
