@@ -697,7 +697,7 @@ if [ ! -f "$CADDYPASSWDDIR/users" ]; then
 fi
 
 sed -i --regexp-extended "/^basicauth\s+\/\s+${USERNAME}\s+/d" "$CADDYPASSWDDIR/users"
-$CADDY_PASSWORD=$(htpasswd -bnBC 10 "" "${PASSWORD}" | tr -d ':\n' | sed 's/$2y/$2a/')
+CADDY_PASSWORD=$(htpasswd -bnBC 10 "" "${PASSWORD}" | tr -d ':\n' | sed 's/$2y/$2a/')
 printf "basicauth / ${USERNAME} ${CADDY_PASSWORD}\n" >> "$CADDYPASSWDDIR/users"
 
 if [ -f "$USERDIR/.session/rtorrent.lock" ]; then
