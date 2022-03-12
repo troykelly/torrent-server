@@ -1,9 +1,15 @@
 {$DOMAIN_NAME} {
     tls {$TLS_EMAIL}
+
+    basicauth bcrypt rutorrent {
+        import /etc/caddyusers/users
+    }
+
     encode {
         gzip
         zstd
     }
+
     log {
         output file /log/access.log {
             roll_size 1gb
@@ -12,11 +18,9 @@
         }
     }     
 
-    basicauth bcrypt rutorrent {
-        import /etc/caddyusers/users
-    }
+    root * {$PHP_APP_DIR}
+    file_server
 
-    # PHP-FPM Configuration for Caddy
     php_fastcgi php:9000 {
         root {$PHP_APP_DIR}
     }
