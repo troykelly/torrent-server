@@ -399,7 +399,7 @@ log.execute                      = (cfg.exlogfile)
 
 #port_range                       = 51777-51780
 #scgi_local                        = $RPCSOCKET
-network.scgi.open_port           = localhost:$PORT
+network.scgi.open_port           = 127.0.0.1:$PORT
 network.http.ssl_verify_peer.set = 0
 network.port_random.set          = yes
 trackers.use_udp.set             = yes
@@ -525,7 +525,7 @@ cat<<EOF>"$RUTORRENTCONFDIR/$USERNAME/config.php"
 	\$forbidUserSettings = false;
 
 	\$scgi_port = ${PORT};
-	\$scgi_host = "localhost";
+	\$scgi_host = "127.0.0.1";
 
 	#\$scgi_port = 0;
 	#\$scgi_host = "unix://$RPCSOCKET";
