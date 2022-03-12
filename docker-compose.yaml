@@ -81,8 +81,7 @@ services:
       - "./torrents/:/torrents/"
       - "/etc/timezone:/etc/timezone:ro"
       - "/etc/localtime:/etc/localtime:ro"
-    ports:
-      - 127.0.0.1:9000:9000
+    network_mode: "host"
     environment:
       - PHP_ROOT_DIR=${PHP_ROOT_DIR}
       - DOCKER_GATEWAY_HOST=${DOCKER_GATEWAY_HOST:-host.docker.internal}
