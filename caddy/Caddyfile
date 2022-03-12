@@ -1,14 +1,19 @@
 {$DOMAIN_NAME} {
-     tls {$TLS_EMAIL}
-     log /log/caddy.log
-     errors /log/error.log
-     encode {
-         gzip
-         zstd
-     }
+    tls {$TLS_EMAIL}
+    encode {
+        gzip
+        zstd
+    }
+    log {
+        output file /log/access.log {
+            roll_size 1gb
+            roll_keep 5
+            roll_keep_for 720h
+        }
+    }     
 
-     import /etc/caddyusers/users
+    import /etc/caddyusers/users
 
-     # PHP-FPM Configuration for Caddy
-     php_fastcgi php:9005
- }
+    # PHP-FPM Configuration for Caddy
+    php_fastcgi php:9005
+}
