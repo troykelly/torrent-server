@@ -40,9 +40,7 @@ services:
       - "./security/caddy/:/etc/caddyusers/"
       - "./certs/data:/data"
       - "./certs/config:/config"
-    ports:
-      - 80:80
-      - 443:443
+    network_mode: "host"
     depends_on:
       - php
       - ruwebfiles
@@ -54,6 +52,7 @@ services:
       - PHP_APP_DIR=${PHP_APP_DIR}
       - TLS_EMAIL=${TLS_EMAIL}
       - ACME_AGREE=true
+      - PHP_FPM_HOST=${DOCKER_GATEWAY_HOST:-host.docker.internal}:9000
     networks:
       - frontend
       - backend
@@ -64,6 +63,11 @@ services:
         gelf-compression-type: none
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         labels: caddy
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: 1g
   php:
     build:
       context: "./php"
@@ -80,9 +84,8 @@ services:
       - "./torrents/:/torrents/"
       - "/etc/timezone:/etc/timezone:ro"
       - "/etc/localtime:/etc/localtime:ro"
-    networks:
-      - backend
-      - torrent
+    ports:
+      - 127.0.0.1:9000:9000
     environment:
       - PHP_ROOT_DIR=${PHP_ROOT_DIR}
       - APP_USER=${APP_USER}
@@ -95,6 +98,11 @@ services:
         gelf-compression-type: none
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         labels: rutorrent,php
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: ${MEMORY_LIMIT}
   rutorrent_media:
     build:
       context: "./ruTorrent"
@@ -116,8 +124,7 @@ services:
       - DHTPORT=${MEDIA_DHT}
       - OSDB_USER=${OSDB_USERNAME}
       - OSDB_PASSWORD=${OSDB_PASSWORD}
-    networks:
-      - torrent
+    network_mode: "host"
     tmpfs:
       - "/tmp"
     volumes:
@@ -127,8 +134,6 @@ services:
       - "./filebot/:/torrents/${MEDIA_USERNAME}/.filebot/"
       - "parta:/torrents/${MEDIA_USERNAME}/media/TV:rw"
       - "partb:/torrents/${MEDIA_USERNAME}/media/Movie:rw"
-    ports:
-      - 6881:6881
     restart: unless-stopped
     logging:
       driver: gelf
@@ -137,6 +142,11 @@ services:
         gelf-compression-type: none
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         labels: rutorrent,torrent-media
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: ${MEMORY_LIMIT}
   rutorrent_other:
     build:
       context: "./ruTorrent"
@@ -158,8 +168,7 @@ services:
       - DHTPORT=${OTHER_DHT}
       - OSDB_USER=${OSDB_USERNAME}
       - OSDB_PASSWORD=${OSDB_PASSWORD}
-    networks:
-      - torrent
+    network_mode: "host"
     tmpfs:
       - "/tmp"
     volumes:
@@ -168,8 +177,6 @@ services:
       - "./security/:/app-data/"
       - "./filebot/:/torrents/${OTHER_USERNAME}/.filebot/"
       - "partc:/torrents/${OTHER_USERNAME}/upload:rw"
-    ports:
-      - 6882:6882
     restart: unless-stopped
     logging:
       driver: gelf
@@ -178,10 +185,11 @@ services:
         gelf-compression-type: none
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         labels: rutorrent,torrent-other
-networks:
-  frontend:
-  backend:
-  torrent:
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: ${MEMORY_LIMIT}
 volumes:
   parta:
     driver: rclone:latest

@@ -21,7 +21,7 @@
     root * {$PHP_APP_DIR}
     file_server
 
-    php_fastcgi php:9000 {
+    php_fastcgi {$PHP_FPM_HOST} {
         root {$PHP_APP_DIR}
     }
 }
