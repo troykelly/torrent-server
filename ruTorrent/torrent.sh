@@ -699,7 +699,7 @@ fi
 
 sed -i --regexp-extended "/^basicauth\s+?.+\s+?(\{\s+)?${USERNAME}\s+/d" "$CADDYPASSWDDIR/users"
 sed -i --regexp-extended "/^\s+${USERNAME}\s+[A-Za-z0-9]+$/d" "$CADDYPASSWDDIR/users"
-CADDY_PASSWORD=$(${CADDY} hash-password -plaintext "${PASSWORD}")
+CADDY_PASSWORD=$(${CADDY} hash-password --plaintext "${PASSWORD}")
 printf "\t${USERNAME} ${CADDY_PASSWORD}\n" >> "$CADDYPASSWDDIR/users"
 
 if [ -f "$USERDIR/.session/rtorrent.lock" ]; then
