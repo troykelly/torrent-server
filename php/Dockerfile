@@ -6,7 +6,7 @@ ARG PHP_ROOT_DIR
 
 RUN apk update && \
  apk upgrade && \
- apk add python2 python3 && \
+ apk add python3 && \
  mkdir -p /usr/local/etc/
 
 COPY www.conf ${PHP_ROOT_DIR}/php-fpm.d/www.conf
