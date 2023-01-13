@@ -1,0 +1,396 @@
+#!/usr/bin/env zsh
+
+# Check if the user has given the correct number of arguments
+if (( $# < 4 )); then
+    echo >&2 "Usage: $0 -s <source> -d <destination> [-c]"
+    exit 1
+fi
+
+# Check if ffmpeg is installed
+if ! [ -x "$(command -v ffmpeg)" ]; then
+	echo >&2 'Error: ffmpeg is not installed.'
+	exit 1
+fi
+
+# Check if ffprobe is installed
+if ! [ -x "$(command -v ffprobe)" ]; then
+	echo >&2 'Error: ffprobe is not installed.'
+	exit 1
+fi
+
+# Check if file is installed
+if ! [ -x "$(command -v file)" ]; then
+	echo >&2 'Error: file is not installed.'
+	exit 1
+fi
+
+# Parse the arguments
+while (( $# > 0 )); do
+    case $1 in
+        -s|--source)
+            shift
+            if [[ -e $1 ]]; then
+                if [[ -r $1 ]]; then
+                    source=$1
+                else
+                    echo >&2 "Error: $1 is not readable"
+                    exit 1
+                fi
+            else
+                echo >&2 "Error: $1 does not exist"
+                exit 1
+            fi
+            ;;
+        -d|--destination)
+            shift
+            if [[ -e $1 ]]; then
+                if [[ -d $1 ]]; then
+                    if [[ -w $1 ]]; then
+                        if [[ -x $1 ]]; then
+                            destination=$1
+                        else
+                            echo >&2 "Error: $1 is not executable"
+                            exit 1
+                        fi
+                    else
+                        echo >&2 "Error: $1 is not writable"
+                        exit 1
+                    fi
+                else
+                    echo >&2 "Error: $1 is not a directory"
+                    exit 1
+                fi
+            else
+                echo >&2 "Error: $1 does not exist"
+                exit 1
+            fi
+            ;;
+        -c|--copy)
+            copy=true
+            ;;
+        *)
+            echo >&2 "Error: Invalid argument $1"
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+# Check if the user has given all the required arguments
+if [[ -z $source ]]; then
+    echo >&2 "Error: Source not specified"
+    exit 1
+fi
+
+if [[ -z $destination ]]; then
+    echo >&2 "Error: Destination not specified"
+    exit 1
+fi
+
+# Display the arguments
+echo >&2 "🛫 Source: $source"
+echo >&2 "🛬 Destination: $destination"
+
+if [[ -n $copy ]]; then
+    echo >&2 "📑 Copy files enabled"
+else
+    echo >&2 "📤 Move files enabled"
+fi
+
+if [[ -z $ffmpeg_loglevel ]]; then
+	ffmpeg_loglevel="error"
+fi
+
+if [[ -z $max_title_length ]]; then
+	max_title_length=100
+fi
+
+is_m4b() {
+	if (( $# < 1 )); then
+		echo >&2 "Must supply a file to process"
+		return 1
+	fi
+	if [[ -e $1 ]]; then
+		if [[ -r $1 ]]; then
+			source=$1
+		else
+			echo >&2 "Error: $1 is not readable"
+			return 1
+		fi
+	else
+		echo >&2 "Error: $1 does not exist"
+		return 1
+	fi
+	if [[ $(file -b --mime-type $1) == "audio/x-m4a" ]]
+	then
+		true
+	else
+		false
+	fi
+}
+
+is_mp3() {
+	if (( $# < 1 )); then
+		echo >&2 "Must supply a file to process"
+		return 1
+	fi
+	if [[ -e $1 ]]; then
+		if [[ -r $1 ]]; then
+			source=$1
+		else
+			echo >&2 "Error: $1 is not readable"
+			return 1
+		fi
+	else
+		echo >&2 "Error: $1 does not exist"
+		return 1
+	fi
+	if [[ $(file -b --mime-type $1) == "audio/mpeg" ]]
+	then
+		true
+	else
+		false
+	fi
+}
+
+is_zip() {
+	if (( $# < 1 )); then
+		echo >&2 "Must supply a file to process"
+		return 1
+	fi
+	if [[ -e $1 ]]; then
+		if [[ -r $1 ]]; then
+			source=$1
+		else
+			echo >&2 "Error: $1 is not readable"
+			return 1
+		fi
+	else
+		echo >&2 "Error: $1 does not exist"
+		return 1
+	fi
+	if [[ $(file -b --mime-type $1) == "application/zip" ]]
+	then
+		true
+	else
+		false
+	fi
+}
+
+process_file() {
+	if (( $# < 3 )); then
+		echo >&2 "Must supply a file to process and destination and copy flag"
+		return 1
+	fi
+	if [[ -e $1 ]]; then
+		if [[ -r $1 ]]; then
+			source=$1
+		else
+			echo >&2 "Error: $1 is not readable"
+			return 1
+		fi
+	else
+		echo >&2 "Error: $1 does not exist"
+		return 1
+	fi
+
+	file=$(basename $1)
+	file_source=$(dirname $1)
+	file_destination=$2
+	file_copy=$3
+		
+	if [[ ! -f "${file_source}/${file}" ]]; then
+		echo >&2 "⛔ ${file_source}/${file} not valid or doesn't exist"
+		return 11
+	fi
+
+	author_field=.format.tags.artist
+	title_field=.format.tags.title
+	narrator_field=.format.tags.composer
+	year_field=.format.tags.date
+	file_extension=m4b
+	
+	if is_mp3 "${file_source}/${file}"; then
+		narrator_field=.format.tags.narrated_by
+		author_field=.format.tags.author
+		file_extension=mp3
+	elif ! is_m4b "${file_source}/${file}"; then
+		echo >&2 "⛔ ${file} doesn't appear to be an audiobook"
+		return 1
+	fi
+
+	# Get the title and year of the file
+	echo >&2 "📄 Reading metadata from ${file}"
+	metadata=$(ffprobe -loglevel ${ffmpeg_loglevel} -print_format json -show_format -show_streams -show_chapters "${file_source}/${file}")
+	if [ $? != 0 ]; then
+		echo >&2 "⛔ ${file} doesn't have metadata"
+		return 10
+	fi
+	if [[ -z "${metadata}" ]]; then
+		echo >&2 "⛔ ${file} doesn't have metadata"
+		return 10
+	fi
+	title=`jq -r "${title_field}" <<< "${metadata}"`
+	if [ -z "$title" ]; then echo >&2 "⚠️ ${file} No title"; title="${file%.*}"; fi
+	if [ "${#title}" -ge "$max_title_length" ]; then
+		title="${file%.*}"
+	fi
+	author=`jq -r "${author_field}" <<< "${metadata}"`
+	if [ -z "$author" ]; then echo >&2 "⚠️ ${file} No author"; author=Unknown; fi
+	narrator=`jq -r "${narrator_field}" <<< "${metadata}"`
+	if [ -z "$narrator" ]; then echo >&2 "⚠️ ${file} No narrator"; narrator=Unknown; fi
+	year=`jq -r "${year_field}" <<< "${metadata}"`
+	if [ -z "$year" ]; then echo >&2 "⚠️ ${file} No year"; year=Unknown; fi
+	audiobook_folder="${file_destination}/${author}/${title} ($year)"
+	audiobook_chapters="${audiobook_folder}/chapters"
+
+	# Create a folder for the file if it doesn't exist
+	if [ ! -d "$audiobook_chapters" ]; then
+		mkdir -p "$audiobook_chapters"
+	fi
+	if [ ! -d "$audiobook_chapters" ]; then
+		echo >&2 "🚫 Unable to access ${audiobook_chapters}"
+		return  2
+	fi	
+	if [ ! -f "$audiobook_chapters/.ignore" ]; then
+		touch "$audiobook_chapters/.ignore"
+	fi
+
+	if [ -f "$audiobook_folder/$file" ]; then
+		if cmp -s "${file_source}/${file}" "${audiobook_folder}/${file}" ; then
+			if [[ ! -n $file_copy ]]; then
+				rm -f "${file_source}/${file}"
+			fi
+		else
+			echo >&2 "⚠️ File aready exists"
+			mv "$audiobook_folder/$file" "$audiobook_folder/$file.bak"
+			if [[ -n $file_copy ]]; then
+				cp "${file_source}/${file}" "$audiobook_folder/"
+			else
+				mv "${file_source}/${file}" "$audiobook_folder/"
+			fi
+		fi
+	else
+		if [[ -n $file_copy ]]; then
+			cp "${file_source}/${file}" "$audiobook_folder/"
+		else
+			mv "${file_source}/${file}" "$audiobook_folder/"
+		fi
+	fi
+	
+	if [ ! -f "$audiobook_folder/$file" ]; then
+		echo >&2 "🚫 $audiobook_folder/$file Audiobook file does not exist"
+		return 3
+	fi
+	
+	if [ ! -f "${audiobook_folder}/cover.jpg" ]; then
+		ffmpeg -loglevel ${ffmpeg_loglevel} -i "${audiobook_folder}/$file" -frames:v 1 -an -vcodec copy "${audiobook_folder}/cover.jpg"
+	fi
+
+	if [[ -f "${audiobook_chapters}/metadata.txt" ]]; then rm -f "${audiobook_chapters}/metadata.txt"; fi
+	ffmpeg -loglevel ${ffmpeg_loglevel} -i "${audiobook_folder}/$file" -map_chapters -1 -f ffmetadata "${audiobook_chapters}/metadata.txt"
+
+	# Loop over the chapters
+	count=`jq '.chapters | length' <<< "${metadata}"`
+	total_chapters=$((count+1))
+	for ((i=0; i<$count; i++)); do
+		chapter=`jq -r '.chapters['$i']' <<< "${metadata}"`
+		chapter_id=$(jq -r '.id' <<< "$chapter")
+		if [ -z "$chapter_id" ]; then echo >&2 "No chapter id. JSON: ${chapter}"; return 4; fi
+		printf -v chapter_number "%d" $((chapter_id+1))
+		chapter_title=$(jq -r '.tags.title' <<< "$chapter")
+		if [[ "$chapter_title" =~ ^\".*  ]] && [[ "$chapter_title" =~ .*\"$  ]]; then
+			chapter_title=${chapter_title#"\""}
+			chapter_title=${chapter_title%"\""}
+		fi
+		file_name="${chapter_number}- ${chapter_title}.${file_extension}"
+		chapter_file_name="${chapter_number}- ${chapter_title}.txt"
+		if [ ! -f "${audiobook_chapters}/${file_name}" ]; then
+			seek_position=$(jq -r '.start_time' <<< "$chapter")
+			if [ -z "$seek_position" ]; then echo >&2 "No seek position for chapter id ${chapter_id}"; return 5; fi
+			end_position=$(jq -r '.end_time' <<< "$chapter")
+			if [ -z "$end_position" ]; then echo >&2 "No end position for chapter id ${chapter_id}"; return 6; fi
+			length_seconds=$((end_position-seek_position))
+			printf -v chapter_start_ms "%0d" $((seek_position*1000))
+			printf -v chapter_end_ms "%0d" $((end_position*1000))
+			printf -v chapter_length_ms "%0.6f" $((length_seconds*1000))
+			printf -v chapter_start_seconds "%0.6f" "${seek_position}"
+			printf -v chapter_end_seconds "%0.6f" "${end_position}"
+			printf -v chapter_length_seconds "%0.6f" "${length_seconds}"
+			if [[ -f "${audiobook_chapters}/${chapter_file_name}" ]]; then rm -f "${audiobook_chapters}/${chapter_file_name}"; fi
+			cp "${audiobook_chapters}/metadata.txt" "${audiobook_chapters}/${chapter_file_name}"
+			printf "\n\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=%d\nEND=%d\ntitle=%q\n\n" "0" "${chapter_length_ms}" "${chapter_title}" >> "${audiobook_chapters}/${chapter_file_name}"
+			echo >&2 "${file_name} ==> ${seek_position} to ${end_position} (${chapter_end_seconds})"
+			ffmpeg -loglevel ${ffmpeg_loglevel} -ss "${seek_position}s" -to "${end_position}s" -i "${audiobook_folder}/$file" -i "${audiobook_chapters}/${chapter_file_name}" -map_metadata 0 -map_chapters 1 -metadata "track=${chapter_number}/${total_chapters}" -metadata "title=${chapter_title}" -c copy "${audiobook_chapters}/${file_name}"
+		fi		
+	done
+}
+
+pre_process_file() {
+	if (( $# < 3 )); then
+		echo >&2 "Must supply a file to process and destination and copy flag"
+		return 1
+	fi
+	if [[ -e $1 ]]; then
+		if [[ -r $1 ]]; then
+			source=$1
+		else
+			echo >&2 "Error: $1 is not readable"
+			return 1
+		fi
+	else
+		echo >&2 "Error: $1 does not exist"
+		return 1
+	fi
+	
+	if [[ -d $1 ]]; then
+		return 0
+	fi
+	
+	if is_zip $1; then
+		local UNZIPDIR=`mktemp -d`
+		unzip $1 -d ${UNZIPDIR}
+		process_dir ${UNZIPDIR} $2 $3
+		rm -Rf ${UNZIPDIR}
+		if [[ -f "$2/$(basename $1)" ]]; then
+			echo >&2 "⚠️ $(basename $1) Zip aready exists at destination. Not doing anything."
+		else
+			if [[ -n $3 ]]; then
+				cp $1 $2
+			else
+				mv $1 $2
+			fi
+		fi
+	else
+		process_file $1 $2 $3
+	fi
+}
+
+process_dir() {
+	local i
+	if (( $# < 3 )); then
+		echo >&2 "Must supply a file to process and destination and copy flag"
+		return 1
+	fi
+	if [[ -e $1 ]]; then
+		if [[ -r $1 ]]; then
+			source=$1
+		else
+			echo >&2 "Error: $1 is not readable"
+			return 1
+		fi
+	else
+		echo >&2 "Error: $1 does not exist"
+		return 1
+	fi
+	shopt -s globstar > /dev/null 2>&1
+	for i in ${1}/**/*; do
+		pre_process_file "$i" $2 $3
+	done	
+}
+
+if [[ -d $source ]]; then
+	process_dir "${source}" "${destination}" ${copy}
+else
+	pre_process_file "$source" "${destination}" ${copy}
+fi
