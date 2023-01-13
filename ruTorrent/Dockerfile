@@ -1,10 +1,5 @@
 FROM ubuntu
 
-ARG APP_USER=rutorrent
-ARG APP_GROUP=rutorrent
-ARG RUUSER=rutorrent
-ARG PORT=5001
-ARG DHTPORT=6881
 ARG FILEBOT_VERSION=4.9.6
 
 RUN echo "APT::Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries && \
@@ -53,6 +48,12 @@ RUN echo "APT::Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries && \
     sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     dpkg-reconfigure --frontend=noninteractive locales && \
     update-locale LANG=en_US.UTF-8 
+
+ARG APP_USER=rutorrent
+ARG APP_GROUP=rutorrent
+ARG RUUSER=rutorrent
+ARG PORT=5001
+ARG DHTPORT=6881
 
 RUN groupadd -g 1000 ${APP_GROUP} && \
  useradd -u 1000 -c "Torrent User" -d /torrents/${RUUSER} -g ${APP_GROUP} -m -s /usr/sbin/nologin ${RUUSER} && \
