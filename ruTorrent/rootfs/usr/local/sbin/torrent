@@ -216,7 +216,7 @@ doComplete() {
   elif [ "$label" = "AUDIOBOOK" ] || [ "$label" = "AUDIBLE" ]; then
     MEDIADIR="${user_dir}/media"
     MEDIALOGDIR="${user_dir}/log"
-    AUDIOBOOKSDIR="${MEDIADIR}/audiobooks"
+    AUDIOBOOKSDIR="${MEDIADIR}/Audiobooks"
     mkdir -p "${AUDIOBOOKSDIR}" "${MEDIALOGDIR}"
     find ${base_path} -type d -name '*\r' -exec mv "{}" "$(echo {} | sed -e 's/\\r//g')" \;
     find ${base_path} -type d -name '*\n' -exec mv "{}" "$(echo {} | sed -e 's/\\n//g')" \;
