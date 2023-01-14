@@ -361,8 +361,9 @@ pre_process_file() {
 		unzip "$1" -d ${UNZIPDIR}
 		process_dir ${UNZIPDIR} $2 $3
 		rm -Rf ${UNZIPDIR}
-		if [[ -f "$2/$(basename $1)" ]]; then
-			echo >&2 "⚠️ $(basename $1) Zip aready exists at destination. Not doing anything."
+		zip_file=$(basename "$1")
+		if [[ -f "$2/${zip_file}" ]]; then
+			echo >&2 "⚠️ ${zip_file} Zip aready exists at destination. Not doing anything."
 		else
 			if [[ -n $3 ]]; then
 				cp "$1" "$2"
@@ -371,7 +372,7 @@ pre_process_file() {
 			fi
 		fi
 	else
-		process_file "$1" "$2" "$3"
+		process_file "$1" "$2" $3
 	fi
 }
 
@@ -381,9 +382,9 @@ process_dir() {
 		echo >&2 "Must supply a file to process and destination and copy flag"
 		return 1
 	fi
-	if [[ -e $1 ]]; then
-		if [[ -r $1 ]]; then
-			source=$1
+	if [[ -e "$1" ]]; then
+		if [[ -r "$1" ]]; then
+			source="$1"
 		else
 			echo >&2 "Error: $1 is not readable"
 			return 1
@@ -394,7 +395,7 @@ process_dir() {
 	fi
 	shopt -s globstar > /dev/null 2>&1
 	for i in ${1}/**/*; do
-		pre_process_file "$i" $2 $3
+		pre_process_file "$i" "$2" $3
 	done	
 }
 
