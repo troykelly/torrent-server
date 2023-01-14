@@ -116,9 +116,9 @@ is_m4b() {
 		echo >&2 "Must supply a file to process"
 		return 1
 	fi
-	if [[ -e $1 ]]; then
-		if [[ -r $1 ]]; then
-			source=$1
+	if [[ -e "$1" ]]; then
+		if [[ -r "$1" ]]; then
+			source="$1"
 		else
 			echo >&2 "Error: $1 is not readable"
 			return 1
@@ -127,7 +127,7 @@ is_m4b() {
 		echo >&2 "Error: $1 does not exist"
 		return 1
 	fi
-	if [[ $(file -b --mime-type $1) == "audio/x-m4a" ]]
+	if [[ $(file -b --mime-type "$1") == "audio/x-m4a" ]]
 	then
 		true
 	else
@@ -140,9 +140,9 @@ is_mp3() {
 		echo >&2 "Must supply a file to process"
 		return 1
 	fi
-	if [[ -e $1 ]]; then
-		if [[ -r $1 ]]; then
-			source=$1
+	if [[ -e "$1" ]]; then
+		if [[ -r "$1" ]]; then
+			source="$1"
 		else
 			echo >&2 "Error: $1 is not readable"
 			return 1
@@ -151,7 +151,7 @@ is_mp3() {
 		echo >&2 "Error: $1 does not exist"
 		return 1
 	fi
-	if [[ $(file -b --mime-type $1) == "audio/mpeg" ]]
+	if [[ $(file -b --mime-type "$1") == "audio/mpeg" ]]
 	then
 		true
 	else
@@ -164,9 +164,9 @@ is_zip() {
 		echo >&2 "Must supply a file to process"
 		return 1
 	fi
-	if [[ -e $1 ]]; then
-		if [[ -r $1 ]]; then
-			source=$1
+	if [[ -e "$1" ]]; then
+		if [[ -r "$1" ]]; then
+			source="$1"
 		else
 			echo >&2 "Error: $1 is not readable"
 			return 1
@@ -175,7 +175,7 @@ is_zip() {
 		echo >&2 "Error: $1 does not exist"
 		return 1
 	fi
-	if [[ $(file -b --mime-type $1) == "application/zip" ]]
+	if [[ $(file -b --mime-type "$1") == "application/zip" ]]
 	then
 		true
 	else
