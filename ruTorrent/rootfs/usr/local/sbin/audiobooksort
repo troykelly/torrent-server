@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 # Check if the user has given the correct number of arguments
 if (( $# < 4 )); then
