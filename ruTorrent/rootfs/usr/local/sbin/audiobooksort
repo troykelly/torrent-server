@@ -201,8 +201,11 @@ process_file() {
 	fi
 
 	file=$(basename $1)
+	file=${file@Q}
 	file_source=$(dirname $1)
+	file_source=${file_source@Q}
 	file_destination=$2
+	file_destination=${file_destination@Q}
 	file_copy=$3
 		
 	if [[ ! -f "${file_source}/${file}" ]]; then
@@ -245,7 +248,7 @@ process_file() {
 	if [ -z "$narrator" ] || [ "${narrator}" = "null" ]; then echo >&2 "⚠️ No narrator"; narrator=Unknown; fi
 	year=`jq -r "${year_field}" <<< "${metadata}"`
 	if [ -z "$year" ] || [ "${year}" = "null" ]; then echo >&2 "⚠️ ${file} No year"; year=Unknown; fi
-	audiobook_folder="${file_destination}/${author}/${title} ($year)"
+	audiobook_folder="${file_destination}/${author@Q}/${title@Q} (${year@Q})"
 	audiobook_chapters="${audiobook_folder}/chapters"
 
 	# Create a folder for the file if it doesn't exist
