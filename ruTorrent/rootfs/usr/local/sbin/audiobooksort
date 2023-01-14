@@ -24,6 +24,12 @@ if ! [ -x "$(command -v file)" ]; then
 	exit 1
 fi
 
+# Check if file is installed
+if ! [ -x "$(command -v jq)" ]; then
+	echo >&2 'Error: jq is not installed.'
+	exit 1
+fi
+
 # Parse the arguments
 while (( $# > 0 )); do
     case $1 in

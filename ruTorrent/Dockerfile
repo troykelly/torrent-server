@@ -21,6 +21,7 @@ RUN echo "APT::Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries && \
         ffmpeg \
         file \
         git \
+        jq \
         lftp \
         mediainfo \
         net-tools \
