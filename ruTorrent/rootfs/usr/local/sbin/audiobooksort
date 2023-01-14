@@ -233,18 +233,18 @@ process_file() {
 		return 10
 	fi
 	title=`jq -r "${title_field}" <<< "${metadata}"`
-	if [ -z "$title" ]; then echo >&2 "⚠️ ${file} No title"; title="${file%.*}"; fi
+	if [ -z "$title" ] || [ "${title}" = "null" ]; then echo >&2 "⚠️ ${file} No title"; title="${file%.*}"; fi
 	if [ "${#title}" -ge "$max_title_length" ]; then
 		title="${file%.*}"
 	fi
 	author=`jq -r '.format.tags.author' <<< "${metadata}"`
-	if [ -z "$author" ]; then author=`jq -r '.format.tags.artist' <<< "${metadata}"`; fi
-	if [ -z "$author" ]; then echo >&2 "⚠️ No author"; author=Unknown; fi
+	if [ -z "$author" ] || [ "${author}" = "null" ]; then author=`jq -r '.format.tags.artist' <<< "${metadata}"`; fi
+	if [ -z "$author" ] || [ "${author}" = "null" ]; then echo >&2 "⚠️ No author"; author=Unknown; fi
 	narrator=`jq -r '.format.tags.narrated_by' <<< "${metadata}"`
-	if [ -z "$narrator" ]; then narrator=`jq -r '.format.tags.composer' <<< "${metadata}"`; fi
-	if [ -z "$narrator" ]; then echo >&2 "⚠️ No narrator"; narrator=Unknown; fi
+	if [ -z "$narrator" ] || [ "${narrator}" = "null" ]; then narrator=`jq -r '.format.tags.composer' <<< "${metadata}"`; fi
+	if [ -z "$narrator" ] || [ "${narrator}" = "null" ]; then echo >&2 "⚠️ No narrator"; narrator=Unknown; fi
 	year=`jq -r "${year_field}" <<< "${metadata}"`
-	if [ -z "$year" ]; then echo >&2 "⚠️ ${file} No year"; year=Unknown; fi
+	if [ -z "$year" ] || [ "${year}" = "null" ]; then echo >&2 "⚠️ ${file} No year"; year=Unknown; fi
 	audiobook_folder="${file_destination}/${author}/${title} ($year)"
 	audiobook_chapters="${audiobook_folder}/chapters"
 
