@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 # Check if the user has given the correct number of arguments
 if (( $# < 4 )); then
@@ -37,7 +37,7 @@ while (( $# > 0 )); do
             shift
             if [[ -e "$1" ]]; then
                 if [[ -r "$1" ]]; then
-                    source="$1"
+                    source=$1
                 else
                     echo >&2 "Error: $1 is not readable"
                     exit 1
@@ -53,7 +53,7 @@ while (( $# > 0 )); do
                 if [[ -d "$1" ]]; then
                     if [[ -w "$1" ]]; then
                         if [[ -x "$1" ]]; then
-                            destination="$1"
+                            destination=$1
                         else
                             echo >&2 "Error: $1 is not executable"
                             exit 1
@@ -117,14 +117,12 @@ is_m4b() {
 		return 1
 	fi
 	if [[ -e "$1" ]]; then
-		if [[ -r "$1" ]]; then
-			source="$1"
-		else
-			echo >&2 "Error: $1 is not readable"
+		if [[ ! -r "$1" ]]; then
+			echo >&2 "Error is_m4b: $1 is not readable"
 			return 1
 		fi
 	else
-		echo >&2 "Error: $1 does not exist"
+		echo >&2 "Error is_m4b: $1 does not exist"
 		return 1
 	fi
 	if [[ $(file -b --mime-type "$1") == "audio/x-m4a" ]]
@@ -141,14 +139,12 @@ is_mp3() {
 		return 1
 	fi
 	if [[ -e "$1" ]]; then
-		if [[ -r "$1" ]]; then
-			source="$1"
-		else
-			echo >&2 "Error: $1 is not readable"
+		if [[ ! -r "$1" ]]; then
+			echo >&2 "Error is_mp3: $1 is not readable"
 			return 1
 		fi
 	else
-		echo >&2 "Error: $1 does not exist"
+		echo >&2 "Error is_mp3: $1 does not exist"
 		return 1
 	fi
 	if [[ $(file -b --mime-type "$1") == "audio/mpeg" ]]
@@ -165,14 +161,12 @@ is_zip() {
 		return 1
 	fi
 	if [[ -e "$1" ]]; then
-		if [[ -r "$1" ]]; then
-			source="$1"
-		else
-			echo >&2 "Error: $1 is not readable"
+		if [[ ! -r "$1" ]]; then
+			echo >&2 "Error is_zip: $1 is not readable"
 			return 1
 		fi
 	else
-		echo >&2 "Error: $1 does not exist"
+		echo >&2 "Error is_zip: $1 does not exist"
 		return 1
 	fi
 	if [[ $(file -b --mime-type "$1") == "application/zip" ]]
@@ -189,14 +183,12 @@ process_file() {
 		return 1
 	fi
 	if [[ -e "$1" ]]; then
-		if [[ -r "$1" ]]; then
-			source="$1"
-		else
-			echo >&2 "Error: $1 is not readable"
+		if [[ ! -r "$1" ]]; then
+			echo >&2 "Error process_file: $1 is not readable"
 			return 1
 		fi
 	else
-		echo >&2 "Error: $1 does not exist"
+		echo >&2 "Error process_file: $1 does not exist"
 		return 1
 	fi
 
@@ -208,7 +200,7 @@ process_file() {
 	file_destination="${file_destination}"
 	file_copy=$3
 		
-	if [[ ! -f "${file_source}/${file}" ]]; then
+	if [[ ! -f "$1" ]]; then
 		echo >&2 "⛔ ${file_source}/${file} not valid or doesn't exist"
 		return 11
 	fi
@@ -217,16 +209,16 @@ process_file() {
 	year_field=.format.tags.date
 	file_extension=m4b
 	
-	if is_mp3 "${file_source}/${file}"; then
+	if is_mp3 "$1"; then
 		file_extension=mp3
-	elif ! is_m4b "${file_source}/${file}"; then
+	elif ! is_m4b "$1"; then
 		echo >&2 "⛔ ${file} doesn't appear to be an audiobook"
 		return 1
 	fi
 
 	# Get the title and year of the file
 	echo >&2 "📄 Reading metadata from ${file}"
-	metadata=$(ffprobe -loglevel ${ffmpeg_loglevel} -print_format json -show_format -show_streams -show_chapters "${file_source}/${file}")
+	metadata=$(ffprobe -loglevel ${ffmpeg_loglevel} -print_format json -show_format -show_streams -show_chapters "$1")
 	if [ $? != 0 ]; then
 		echo >&2 "⛔ ${file} doesn't have metadata"
 		return 10
@@ -266,24 +258,24 @@ process_file() {
 	echo "📁 Audiobook destination: ${audiobook_folder}"
 
 	if [ -f "$audiobook_folder/$file" ]; then
-		if cmp -s "${file_source}/${file}" "${audiobook_folder}/${file}" ; then
+		if cmp -s "$1" "${audiobook_folder}/${file}" ; then
 			if [[ ! -n $file_copy ]]; then
-				rm -f "${file_source}/${file}"
+				rm -f "$1"
 			fi
 		else
 			echo >&2 "⚠️ File aready exists"
 			mv "$audiobook_folder/$file" "$audiobook_folder/$file.bak"
 			if [[ -n $file_copy ]]; then
-				cp "${file_source}/${file}" "$audiobook_folder/"
+				cp "$1" "$audiobook_folder/"
 			else
-				mv "${file_source}/${file}" "$audiobook_folder/"
+				mv "$1" "$audiobook_folder/"
 			fi
 		fi
 	else
 		if [[ -n $file_copy ]]; then
-			cp "${file_source}/${file}" "$audiobook_folder/"
+			cp "$1" "$audiobook_folder/"
 		else
-			mv "${file_source}/${file}" "$audiobook_folder/"
+			mv "$1" "$audiobook_folder/"
 		fi
 	fi
 	
@@ -340,15 +332,13 @@ pre_process_file() {
 		echo >&2 "Must supply a file to process and destination and copy flag"
 		return 1
 	fi
-	if [[ -e "$1" ]]; then
-		if [[ -r "$1" ]]; then
-			source="$1"
-		else
-			echo >&2 "Error: $1 is not readable"
+	if [[ -e "${1}" ]]; then
+		if [[ ! -r "$1" ]]; then
+			echo >&2 "Error pre_process_file: $1 is not readable"
 			return 1
 		fi
 	else
-		echo >&2 "Error: $1 does not exist"
+		echo >&2 "Error pre_process_file: $1 does not exist"
 		return 1
 	fi
 	
@@ -383,24 +373,21 @@ process_dir() {
 		return 1
 	fi
 	if [[ -e "$1" ]]; then
-		if [[ -r "$1" ]]; then
-			source="$1"
-		else
-			echo >&2 "Error: $1 is not readable"
+		if [[ ! -r "$1" ]]; then
+			echo >&2 "Error process_dir: $1 is not readable"
 			return 1
 		fi
 	else
-		echo >&2 "Error: $1 does not exist"
+		echo >&2 "Error process_dir: $1 does not exist"
 		return 1
 	fi
-	shopt -s globstar > /dev/null 2>&1
-	for i in ${1}/**/*; do
-		pre_process_file "$i" "$2" $3
+	for i in "${1}"**/**/*; do
+		pre_process_file "${i}" "$2" $3
 	done	
 }
 
 if [[ -d $source ]]; then
 	process_dir "${source}" "${destination}" ${copy}
 else
-	pre_process_file "$source" "${destination}" ${copy}
+	pre_process_file "${source}" "${destination}" ${copy}
 fi
