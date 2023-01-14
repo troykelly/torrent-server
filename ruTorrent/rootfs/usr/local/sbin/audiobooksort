@@ -260,6 +260,8 @@ process_file() {
 		touch "$audiobook_chapters/.ignore"
 	fi
 
+	echo "📁 Audiobook destination: ${$audiobook_folder}"
+
 	if [ -f "$audiobook_folder/$file" ]; then
 		if cmp -s "${file_source}/${file}" "${audiobook_folder}/${file}" ; then
 			if [[ ! -n $file_copy ]]; then
