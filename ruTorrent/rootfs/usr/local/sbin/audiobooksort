@@ -183,6 +183,21 @@ is_zip() {
 	fi
 }
 
+get_author() {
+	author=`jq -r ".format.tags.author" <<< "${1}"`
+	if [ -z "$author" ]; then author=`jq -r ".format.tags.artist" <<< "${1}"`; fi
+	if [ -z "$author" ]; then echo >&2 "⚠️ No author"; author=Unknown; fi
+	echo ${author}
+}
+
+get_narrator() {
+	narrator=`jq -r ".format.tags.narrated_by" <<< "${1}"`
+	if [ -z "$narrator" ]; then narrator=`jq -r ".format.tags.composer" <<< "${1}"`; fi
+	if [ -z "$narrator" ]; then echo >&2 "⚠️ No narrator"; narrator=Unknown; fi
+	echo ${narrator}
+}
+
+
 process_file() {
 	if (( $# < 3 )); then
 		echo >&2 "Must supply a file to process and destination and copy flag"
@@ -210,15 +225,11 @@ process_file() {
 		return 11
 	fi
 
-	author_field=.format.tags.artist
 	title_field=.format.tags.title
-	narrator_field=.format.tags.composer
 	year_field=.format.tags.date
 	file_extension=m4b
 	
 	if is_mp3 "${file_source}/${file}"; then
-		narrator_field=.format.tags.narrated_by
-		author_field=.format.tags.author
 		file_extension=mp3
 	elif ! is_m4b "${file_source}/${file}"; then
 		echo >&2 "⛔ ${file} doesn't appear to be an audiobook"
@@ -241,10 +252,8 @@ process_file() {
 	if [ "${#title}" -ge "$max_title_length" ]; then
 		title="${file%.*}"
 	fi
-	author=`jq -r "${author_field}" <<< "${metadata}"`
-	if [ -z "$author" ]; then echo >&2 "⚠️ ${file} No author"; author=Unknown; fi
-	narrator=`jq -r "${narrator_field}" <<< "${metadata}"`
-	if [ -z "$narrator" ]; then echo >&2 "⚠️ ${file} No narrator"; narrator=Unknown; fi
+	author=$(get_author "${metadata}")
+	narrator=$(get_narrator "${metadata}")
 	year=`jq -r "${year_field}" <<< "${metadata}"`
 	if [ -z "$year" ]; then echo >&2 "⚠️ ${file} No year"; year=Unknown; fi
 	audiobook_folder="${file_destination}/${author}/${title} ($year)"
