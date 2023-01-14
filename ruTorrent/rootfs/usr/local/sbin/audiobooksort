@@ -188,9 +188,9 @@ process_file() {
 		echo >&2 "Must supply a file to process and destination and copy flag"
 		return 1
 	fi
-	if [[ -e $1 ]]; then
-		if [[ -r $1 ]]; then
-			source=$1
+	if [[ -e "$1" ]]; then
+		if [[ -r "$1" ]]; then
+			source="$1"
 		else
 			echo >&2 "Error: $1 is not readable"
 			return 1
@@ -200,9 +200,9 @@ process_file() {
 		return 1
 	fi
 
-	file=$(basename $1)
+	file=$(basename "$1")
 	file="${file@Q}"
-	file_source=$(dirname $1)
+	file_source=$(dirname "$1")
 	file_source="${file_source@Q}"
 	file_destination=$2
 	file_destination="${file_destination@Q}"
@@ -340,9 +340,9 @@ pre_process_file() {
 		echo >&2 "Must supply a file to process and destination and copy flag"
 		return 1
 	fi
-	if [[ -e $1 ]]; then
-		if [[ -r $1 ]]; then
-			source=$1
+	if [[ -e "$1" ]]; then
+		if [[ -r "$1" ]]; then
+			source="$1"
 		else
 			echo >&2 "Error: $1 is not readable"
 			return 1
@@ -352,26 +352,26 @@ pre_process_file() {
 		return 1
 	fi
 	
-	if [[ -d $1 ]]; then
+	if [[ -d "$1" ]]; then
 		return 0
 	fi
 	
-	if is_zip $1; then
+	if is_zip "$1"; then
 		local UNZIPDIR=`mktemp -d`
-		unzip $1 -d ${UNZIPDIR}
+		unzip "$1" -d ${UNZIPDIR}
 		process_dir ${UNZIPDIR} $2 $3
 		rm -Rf ${UNZIPDIR}
 		if [[ -f "$2/$(basename $1)" ]]; then
 			echo >&2 "⚠️ $(basename $1) Zip aready exists at destination. Not doing anything."
 		else
 			if [[ -n $3 ]]; then
-				cp $1 $2
+				cp "$1" "$2"
 			else
-				mv $1 $2
+				mv "$1" "$2"
 			fi
 		fi
 	else
-		process_file $1 $2 $3
+		process_file "$1" "$2" "$3"
 	fi
 }
 
