@@ -391,3 +391,4 @@ if [[ -d $source ]]; then
 else
 	pre_process_file "${source}" "${destination}" ${copy}
 fi
+
