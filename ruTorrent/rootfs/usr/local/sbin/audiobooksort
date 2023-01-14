@@ -35,9 +35,9 @@ while (( $# > 0 )); do
     case $1 in
         -s|--source)
             shift
-            if [[ -e $1 ]]; then
-                if [[ -r $1 ]]; then
-                    source=$1
+            if [[ -e "$1" ]]; then
+                if [[ -r "$1" ]]; then
+                    source="$1"
                 else
                     echo >&2 "Error: $1 is not readable"
                     exit 1
@@ -49,11 +49,11 @@ while (( $# > 0 )); do
             ;;
         -d|--destination)
             shift
-            if [[ -e $1 ]]; then
-                if [[ -d $1 ]]; then
-                    if [[ -w $1 ]]; then
-                        if [[ -x $1 ]]; then
-                            destination=$1
+            if [[ -e "$1" ]]; then
+                if [[ -d "$1" ]]; then
+                    if [[ -w "$1" ]]; then
+                        if [[ -x "$1" ]]; then
+                            destination="$1"
                         else
                             echo >&2 "Error: $1 is not executable"
                             exit 1
@@ -359,7 +359,7 @@ pre_process_file() {
 	if is_zip "$1"; then
 		local UNZIPDIR=`mktemp -d`
 		unzip "$1" -d ${UNZIPDIR}
-		process_dir ${UNZIPDIR} $2 $3
+		process_dir ${UNZIPDIR} "$2" $3
 		rm -Rf ${UNZIPDIR}
 		zip_file=$(basename "$1")
 		if [[ -f "$2/${zip_file}" ]]; then
