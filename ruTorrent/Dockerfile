@@ -48,7 +48,8 @@ RUN echo "APT::Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries && \
     mkdir -p /torrents /etc/filebot /app /app-data && \
     sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     dpkg-reconfigure --frontend=noninteractive locales && \
-    update-locale LANG=en_US.UTF-8 
+    update-locale LANG=en_US.UTF-8 && \
+    pip3 install cfscrape yt-dlp pycryptodome
 
 ARG APP_USER=rutorrent
 ARG APP_GROUP=rutorrent
@@ -58,11 +59,13 @@ ARG DHTPORT=6881
 
 RUN groupadd -g 1000 ${APP_GROUP} && \
  useradd -u 1000 -c "Torrent User" -d /torrents/${RUUSER} -g ${APP_GROUP} -m -s /usr/sbin/nologin ${RUUSER} && \
- su - ${RUUSER} -s "/usr/bin/zsh" -c "pip3 install cfscrape" && \
- mkdir -p /torrents/${RUUSER}/.filebot/cache && \
- chown -R ${RUUSER}:${APP_GROUP} /torrents /etc/filebot /torrents/${RUUSER}/.filebot /app /app-data
+ su - ${RUUSER} -s "/usr/bin/zsh" -c "pip3 install cfscrape yt-dlp pycryptodome" && \
+ mkdir -p /torrents/${RUUSER}/.filebot/cache
 
+COPY .zshrc.source /torrents/${RUUSER}/.zshrc
 COPY rootfs/ /
+
+RUN chown -R ${RUUSER}:${APP_GROUP} /torrents /etc/filebot /torrents/${RUUSER}/.filebot /app /app-data
 
 USER ${RUUSER}:${APP_GROUP}
 ENV LANG=en_US.UTF-8

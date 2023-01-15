@@ -723,6 +723,13 @@ if [ ! -f "$HOME/.filebot/license.txt" ]; then
   printf "\t[Ok]\n"
 fi
 
+if [ ! -f "$HOME/.filebot/system.properties" ]; then
+  printf "Storing filebot config"
+  mkdir -p "$HOME/.filebot"
+  ${FILEBOT} -script fn:properties --def net.filebot.xattr.store=.xattr
+  printf "\t[Ok]\n"
+fi
+
 COMMAND="screen -DmS rt_${USERNAME} ${RTORRENT} -n -o import=$RTORRENTCONF"
 
 if [ "$NORUN" == "YES" ]; then
