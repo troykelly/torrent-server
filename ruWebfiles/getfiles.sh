@@ -25,6 +25,7 @@ getRUTorrent ()
     mkdir -p "${RUTORRENT_APP_DIR}" && \
         cd "${RUTORRENT_APP_DIR}" && \
         git init && \
+        git config --global --add safe.directory /app && \
         git remote add origin "${RUREPO}" && \
         git fetch origin && \
         git checkout -b master --track origin/master && \
@@ -35,6 +36,7 @@ updateRUTorrent ()
 {
     echo "📂 Update ruTorrent"
     cd "${RUTORRENT_APP_DIR}"
+    git config --global --add safe.directory /app
     git fetch --all
     git reset --hard origin/master
 }
