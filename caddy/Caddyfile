@@ -23,5 +23,9 @@
 
     php_fastcgi {$PHP_FPM_HOST} {
         root {$PHP_APP_DIR}
+        dial_timeout  30s
+        read_timeout  600s
+        write_timeout 600s
+        capture_stderr
     }
 }
